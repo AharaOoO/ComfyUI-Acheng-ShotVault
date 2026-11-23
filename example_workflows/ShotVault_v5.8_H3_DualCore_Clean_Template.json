@@ -2,7 +2,7 @@
   "id": "e55a66ad-a3d0-4bec-b9da-8ed7faac3952",
   "revision": 0,
   "last_node_id": 299,
-  "last_link_id": 291,
+  "last_link_id": 292,
   "nodes": [
     {
       "id": 1,
@@ -756,10 +756,10 @@
         }
       },
       "widgets_values": [
-        "### 母带音轨\n\n常规模式默认旁路。使用整曲母带时，先选择有效音频并打开左侧旁路开关，再在分镜规划台选择整曲母带切片。音频驱动的续段锁 39 帧，上下文与交付切片分开；导出 MP4 使用 AAC。"
+        "### 🎵 母带音轨（`LoadAudio` · 默认旁路）\n\n- **常规模式**：保持左侧 `LoadAudio` 默认旁路（`Ctrl + B` 紫/灰态）即可，无需填音频。\n- **整曲母带驱动 (MV)**：先在 `LoadAudio` 选择音频并解除旁路，再在 `ShotVaultPlan` 顶栏切换 **🎵 音频驱动 → 整曲母带切片**。\n- 音频驱动续段自动锁 **39 帧**（上下文与交付切片严格分离，零累积漂移），导出 MP4 使用 AAC 音轨。"
       ],
       "widgets_values_named": {
-        "text": "### 母带音轨\n\n常规模式默认旁路。使用整曲母带时，先选择有效音频并打开左侧旁路开关，再在分镜规划台选择整曲母带切片。音频驱动的续段锁 39 帧，上下文与交付切片分开；导出 MP4 使用 AAC。"
+        "text": "### 🎵 母带音轨（`LoadAudio` · 默认旁路）\n\n- **常规模式**：保持左侧 `LoadAudio` 默认旁路（`Ctrl + B` 紫/灰态）即可，无需填音频。\n- **整曲母带驱动 (MV)**：先在 `LoadAudio` 选择音频并解除旁路，再在 `ShotVaultPlan` 顶栏切换 **🎵 音频驱动 → 整曲母带切片**。\n- 音频驱动续段自动锁 **39 帧**（上下文与交付切片严格分离，零累积漂移），导出 MP4 使用 AAC 音轨。"
       },
       "color": "#24382b",
       "bgcolor": "#18241d"
@@ -1950,10 +1950,10 @@
         }
       },
       "widgets_values": [
-        "### 分镜规划与采样\n\n- 此工作流按 24 fps 使用，勿只改分镜规划台或封装器其中一处。常规默认 22 帧重叠；8 秒续段生成 226 帧，裁头后净留 204 帧。\n- 武戏 14/12 步分别 8+6 / 7+5；文戏 12/10 步分别 7+5 / 5+5。\n- 二采沿用第一个阶段输出；同段双采共享头部引导。KJ 预览请求帧数为本计划上限，不是逐段重新设置。\n- Run 前确认输出空间。长片逐轮累计预览会重复写出此前片段。"
+        "### 🎬 ShotVault v5.8 快速操作指南 & 采样规范\n\n#### 一、首次使用 4 步上手\n1. **检查模型**：确认 `01` 区 `UNETLoader / CLIPLoader / VAELoader` 与 `03` 区 `LoraLoaderModelOnly` 已选为你本机权重文件（不需要的风格 LoRA 可 `Ctrl + B` 旁路）。\n2. **规划分镜**：在左侧 `ShotVaultPlan` 顶栏修改项目名（点击 `🌐 EN / 中文` 可一键同步切全界面与 10 节点双语）；在 **① 分镜与提示词** 展开总脚本框用 `& 8 &` + `@cut@` / `@continue@` + `===` 自动拆镜，按镜选 **⚔ 武戏 / 🎭 文戏** 并上传 **9 图槽位**。\n3. **整片生成与断点续跑**：点击右上角 **运行**。每镜跑完自动入库；若中途中断，直接再点运行会自动跳过已 `VALID` 镜头。\n4. **单段重抽与导出成片**：切到 **② 选片重抽与修缝** 可对比历史 Take、开启 **单段定向重抽**（支持尾接下一段 `1f / 5f / 22f` 双头桥接 + 自动刷新主成片），或点顶栏 **`🎬 导出成片`** 一键无损合并。\n\n#### 二、关键参数说明\n- 全流程按 **24 fps** 对齐（勿只改 `ShotVaultPlan` 或 `CreateVideo` 单处）；常规默认 **22 帧**重叠（8s 续段生成 226 帧，裁头后净留 204 帧）。\n- 左侧控制台开关：`PrimitiveInt` 为全局基础种子；`GoohaiUniversalSlider` 控制武戏尾端速度 LoRA 强度（默认 `3`）；`PrimitiveBoolean` 分别切换 **武戏 12 步 / 文戏 10 步 / 分块前馈省显存**。"
       ],
       "widgets_values_named": {
-        "text": "### 分镜规划与采样\n\n- 此工作流按 24 fps 使用，勿只改分镜规划台或封装器其中一处。常规默认 22 帧重叠；8 秒续段生成 226 帧，裁头后净留 204 帧。\n- 武戏 14/12 步分别 8+6 / 7+5；文戏 12/10 步分别 7+5 / 5+5。\n- 二采沿用第一个阶段输出；同段双采共享头部引导。KJ 预览请求帧数为本计划上限，不是逐段重新设置。\n- Run 前确认输出空间。长片逐轮累计预览会重复写出此前片段。"
+        "text": "### 🎬 ShotVault v5.8 快速操作指南 & 采样规范\n\n#### 一、首次使用 4 步上手\n1. **检查模型**：确认 `01` 区 `UNETLoader / CLIPLoader / VAELoader` 与 `03` 区 `LoraLoaderModelOnly` 已选为你本机权重文件（不需要的风格 LoRA 可 `Ctrl + B` 旁路）。\n2. **规划分镜**：在左侧 `ShotVaultPlan` 顶栏修改项目名（点击 `🌐 EN / 中文` 可一键同步切全界面与 10 节点双语）；在 **① 分镜与提示词** 展开总脚本框用 `& 8 &` + `@cut@` / `@continue@` + `===` 自动拆镜，按镜选 **⚔ 武戏 / 🎭 文戏** 并上传 **9 图槽位**。\n3. **整片生成与断点续跑**：点击右上角 **运行**。每镜跑完自动入库；若中途中断，直接再点运行会自动跳过已 `VALID` 镜头。\n4. **单段重抽与导出成片**：切到 **② 选片重抽与修缝** 可对比历史 Take、开启 **单段定向重抽**（支持尾接下一段 `1f / 5f / 22f` 双头桥接 + 自动刷新主成片），或点顶栏 **`🎬 导出成片`** 一键无损合并。\n\n#### 二、关键参数说明\n- 全流程按 **24 fps** 对齐（勿只改 `ShotVaultPlan` 或 `CreateVideo` 单处）；常规默认 **22 帧**重叠（8s 续段生成 226 帧，裁头后净留 204 帧）。\n- 左侧控制台开关：`PrimitiveInt` 为全局基础种子；`GoohaiUniversalSlider` 控制武戏尾端速度 LoRA 强度（默认 `3`）；`PrimitiveBoolean` 分别切换 **武戏 12 步 / 文戏 10 步 / 分块前馈省显存**。"
       },
       "color": "#1d3638",
       "bgcolor": "#254245"
@@ -2204,10 +2204,10 @@
         }
       },
       "widgets_values": [
-        "### KJ 单监视器\n\n两采共用一个 KJ 预览。预览帧数由分镜计划给出：正常是最大分段生成帧数，定向补镜是目标段生成帧数。较短段不会因此延长。"
+        "### 👁️ 实时去噪预览（`ModelPreviewOverrideKJ`）\n\n- 一采、二采共用此监控预览；预览帧数由 `ShotVaultPlan` 自动传入当前计划上限（单段重抽时为目标段帧数）。\n- **⚠️ 防闪退提示**：若开启 ComfyUI Dynamic VRAM 且系统内存 ≤ 64GB，在多段连跑时如遇 `tiny_vae.py access violation` 闪退，直接选中 `ModelPreviewOverrideKJ` 按 **`Ctrl + B` 旁路**（或清空 `taeh3.safetensors`）即可，**完全不影响最终出片画质**且更省内存。"
       ],
       "widgets_values_named": {
-        "text": "### KJ 单监视器\n\n两采共用一个 KJ 预览。预览帧数由分镜计划给出：正常是最大分段生成帧数，定向补镜是目标段生成帧数。较短段不会因此延长。"
+        "text": "### 👁️ 实时去噪预览（`ModelPreviewOverrideKJ`）\n\n- 一采、二采共用此监控预览；预览帧数由 `ShotVaultPlan` 自动传入当前计划上限（单段重抽时为目标段帧数）。\n- **⚠️ 防闪退提示**：若开启 ComfyUI Dynamic VRAM 且系统内存 ≤ 64GB，在多段连跑时如遇 `tiny_vae.py access violation` 闪退，直接选中 `ModelPreviewOverrideKJ` 按 **`Ctrl + B` 旁路**（或清空 `taeh3.safetensors`）即可，**完全不影响最终出片画质**且更省内存。"
       },
       "color": "#1d3547",
       "bgcolor": "#162836"
@@ -2353,21 +2353,21 @@
       "id": 51,
       "type": "LoraLoaderModelOnly",
       "pos": [
-        7355,
-        165
+        6920.907003923532,
+        164.99999999999994
       ],
       "size": [
         355,
         110
       ],
       "flags": {},
-      "order": 270,
+      "order": 232,
       "mode": 0,
       "inputs": [
         {
           "name": "model",
           "type": "MODEL",
-          "link": 31
+          "link": 292
         }
       ],
       "outputs": [
@@ -2404,15 +2404,15 @@
       "id": 52,
       "type": "LoraLoaderModelOnly",
       "pos": [
-        7770,
-        165
+        7335.907003923532,
+        164.99999999999994
       ],
       "size": [
         355,
         110
       ],
       "flags": {},
-      "order": 280,
+      "order": 270,
       "mode": 0,
       "inputs": [
         {
@@ -2455,15 +2455,15 @@
       "id": 54,
       "type": "LoraLoaderModelOnly",
       "pos": [
-        8742.480280684667,
-        166.05914363956208
+        8308.387284608198,
+        166.05914363956202
       ],
       "size": [
         355,
         110
       ],
       "flags": {},
-      "order": 287,
+      "order": 285,
       "mode": 0,
       "inputs": [
         {
@@ -2506,15 +2506,15 @@
       "id": 56,
       "type": "LoraLoaderModelOnly",
       "pos": [
-        9436.43402174733,
-        166.91168033091972
+        9002.34102567086,
+        166.91168033091967
       ],
       "size": [
         355,
         110
       ],
       "flags": {},
-      "order": 289,
+      "order": 287,
       "mode": 0,
       "inputs": [
         {
@@ -2934,8 +2934,8 @@
       "id": 67,
       "type": "SetNode",
       "pos": [
-        9821.43402174733,
-        166.91168033091972
+        9387.34102567086,
+        166.91168033091967
       ],
       "size": [
         210,
@@ -2944,7 +2944,7 @@
       "flags": {
         "collapsed": true
       },
-      "order": 291,
+      "order": 289,
       "mode": 0,
       "inputs": [
         {
@@ -3153,10 +3153,10 @@
         }
       },
       "widgets_values": [
-        "### LoRA 路由 · 按镜文武互斥\n\n- **一采武戏**：DMAD Full Critic 8-step 1.00 → 动作链（已移除多余 FL2V 8-step Turbo）。\n- **一采文戏**：DMAD Full Critic 8-step 1.00 → Combat V2 0.60 → VBVR I2V V2 0.45。\n- **二采武戏**：DMAD 4-step 0.55 → FL2V Turbo 4-step v1.2 0.75 → 动作链。\n- **二采文戏**：DMAD 4-step 1.00 → Combat V2 0.45 → VBVR I2V V2 0.35。\n- 速度滑块同时驱动两条武戏尾端的 LoRA 强度。"
+        "### 🧩 LoRA 四路路由 · 按镜文武互斥（`LoraLoaderModelOnly`）\n\n- **⚔️ 一采武戏**：`dmad_minimax_h3_8step_full_critic (1.00)` → `H3_Combat_V2 (0.65)` → `Motion_Repair_V2 (0.50)` → `H3_Fight_Flow_V2 (0.25)` → `受击反应 (0.35)` → `H3_speed_slider_1.1_r`（速度滑块驱动）。\n- **🎭 一采文戏**：`dmad_minimax_h3_8step_full_critic (1.00)` → `H3_Combat_V2 (0.60)` → `H3-Licon-VBVR-I2V-V2 (0.45)`。\n- **⚔️ 二采武戏**：`minimax_h3_DMAD_4step_full_lora (0.55)` → `minimax_h3_fl2v_turbo_4step_v1.2 (0.75)` → `H3_Combat_V2 (0.65)` → `Motion_Repair_V2 (0.35)` → `受击反应 (0.35)` → `H3_Fight_Flow_V2 (0.20)` → `H3_speed_slider_1.1_r`。\n- **🎭 二采文戏**：`minimax_h3_DMAD_4step_full_lora (1.00)` → `H3_Combat_V2 (0.45)` → `H3-Licon-VBVR-I2V-V2 (0.35)`。\n- 提示：各节点已保留注册原名 `LoraLoaderModelOnly`，载入后请切换为你本机 `models/loras/` 实际文件名；无某款风格 LoRA 可直接 `Ctrl + B` 旁路。"
       ],
       "widgets_values_named": {
-        "text": "### LoRA 路由 · 按镜文武互斥\n\n- **一采武戏**：DMAD Full Critic 8-step 1.00 → 动作链（已移除多余 FL2V 8-step Turbo）。\n- **一采文戏**：DMAD Full Critic 8-step 1.00 → Combat V2 0.60 → VBVR I2V V2 0.45。\n- **二采武戏**：DMAD 4-step 0.55 → FL2V Turbo 4-step v1.2 0.75 → 动作链。\n- **二采文戏**：DMAD 4-step 1.00 → Combat V2 0.45 → VBVR I2V V2 0.35。\n- 速度滑块同时驱动两条武戏尾端的 LoRA 强度。"
+        "text": "### 🧩 LoRA 四路路由 · 按镜文武互斥（`LoraLoaderModelOnly`）\n\n- **⚔️ 一采武戏**：`dmad_minimax_h3_8step_full_critic (1.00)` → `H3_Combat_V2 (0.65)` → `Motion_Repair_V2 (0.50)` → `H3_Fight_Flow_V2 (0.25)` → `受击反应 (0.35)` → `H3_speed_slider_1.1_r`（速度滑块驱动）。\n- **🎭 一采文戏**：`dmad_minimax_h3_8step_full_critic (1.00)` → `H3_Combat_V2 (0.60)` → `H3-Licon-VBVR-I2V-V2 (0.45)`。\n- **⚔️ 二采武戏**：`minimax_h3_DMAD_4step_full_lora (0.55)` → `minimax_h3_fl2v_turbo_4step_v1.2 (0.75)` → `H3_Combat_V2 (0.65)` → `Motion_Repair_V2 (0.35)` → `受击反应 (0.35)` → `H3_Fight_Flow_V2 (0.20)` → `H3_speed_slider_1.1_r`。\n- **🎭 二采文戏**：`minimax_h3_DMAD_4step_full_lora (1.00)` → `H3_Combat_V2 (0.45)` → `H3-Licon-VBVR-I2V-V2 (0.35)`。\n- 提示：各节点已保留注册原名 `LoraLoaderModelOnly`，载入后请切换为你本机 `models/loras/` 实际文件名；无某款风格 LoRA 可直接 `Ctrl + B` 旁路。"
       },
       "color": "#1f3626",
       "bgcolor": "#16261b"
@@ -7095,10 +7095,10 @@
         }
       },
       "widgets_values": [
-        "### ⏱️ SplitSigmas 四档步数拆分矩阵\n\n- **⚔️ 武戏默认 (14步 = `8+6`)**：`SplitSigmas(step=8)` 在 `0.815` 无缝交接。\n- **⚡ 武戏提速 (12步 = `7+5`)**：开启 `武戏_12步档`，`SplitSigmas(step=7)` 在 `0.825` 交接。\n- **🎭 文戏默认 (12步 = `7+5`)**：`SplitSigmas(step=7)` 兼顾面部微表情细腻度。\n- **🚀 文戏极速 (10步 = `5+5`)**：开启 `文戏_10步档`，`SplitSigmas(step=5)` 在 `0.822` 交接。"
+        "### ⏱️ 双采四档 Sigma 拆分矩阵（`ManualSigmas` + `SplitSigmas`）\n\n- **⚔️ 武戏默认 (14 步 = `8 + 6`)**：`#128 ManualSigmas` → `#129 SplitSigmas(step=8)`，在 `0.815` 交接二采。\n- **⚡ 武戏提速 (12 步 = `6 + 6`)**：开启左侧 `武戏 12 步` 开关，`#130 ManualSigmas` → `#131 SplitSigmas(step=6)`，在 `0.885` 交接。\n- **🎭 文戏默认 (12 步 = `6 + 6`)**：`#132 ManualSigmas` → `#133 SplitSigmas(step=6)`，在 `0.885` 交接。\n- **🚀 文戏极速 (10 步 = `4 + 6`)**：开启左侧 `文戏 10 步` 开关，`#134 ManualSigmas` → `#135 SplitSigmas(step=4)`，在 `0.923` 交接。"
       ],
       "widgets_values_named": {
-        "text": "### ⏱️ SplitSigmas 四档步数拆分矩阵\n\n- **⚔️ 武戏默认 (14步 = `8+6`)**：`SplitSigmas(step=8)` 在 `0.815` 无缝交接。\n- **⚡ 武戏提速 (12步 = `7+5`)**：开启 `武戏_12步档`，`SplitSigmas(step=7)` 在 `0.825` 交接。\n- **🎭 文戏默认 (12步 = `7+5`)**：`SplitSigmas(step=7)` 兼顾面部微表情细腻度。\n- **🚀 文戏极速 (10步 = `5+5`)**：开启 `文戏_10步档`，`SplitSigmas(step=5)` 在 `0.822` 交接。"
+        "text": "### ⏱️ 双采四档 Sigma 拆分矩阵（`ManualSigmas` + `SplitSigmas`）\n\n- **⚔️ 武戏默认 (14 步 = `8 + 6`)**：`#128 ManualSigmas` → `#129 SplitSigmas(step=8)`，在 `0.815` 交接二采。\n- **⚡ 武戏提速 (12 步 = `6 + 6`)**：开启左侧 `武戏 12 步` 开关，`#130 ManualSigmas` → `#131 SplitSigmas(step=6)`，在 `0.885` 交接。\n- **🎭 文戏默认 (12 步 = `6 + 6`)**：`#132 ManualSigmas` → `#133 SplitSigmas(step=6)`，在 `0.885` 交接。\n- **🚀 文戏极速 (10 步 = `4 + 6`)**：开启左侧 `文戏 10 步` 开关，`#134 ManualSigmas` → `#135 SplitSigmas(step=4)`，在 `0.923` 交接。"
       },
       "color": "#2d1d3d",
       "bgcolor": "#1d1429"
@@ -8378,10 +8378,10 @@
         }
       },
       "widgets_values": [
-        "### 接缝修复架构（FuzzPuppy 1:1 迁移版）\n\n- **#162 ShotVault Seam Trim**：负责 22 帧同步裁切与 CIE Lab 线性锁色。\n- **#211 Acheng Seam Bridge**：默认置 `off` 保持每段 `segments` 原始纯净，避免双重处理（需要单段图像级修补时可切 `fuzzpuppy_align` 或 `auto`）。\n- **真正接缝合并已移至右侧 #188 `Acheng FuzzPuppy Clip Merge`**：同时拿到 A 尾 + B 头（含音频），1:1 执行官网 `eI` 双硬切门控 + `rife422lite` ONNX 对称跨缝 5 帧桥接 / `eS` 稠密网格非刚性对齐 + 30ms 音频交叉淡化。\n- **🧪 实验功能提示**：接缝修复仅适用于机位与分镜保持不变时、因续接生成导致的画面突变修补；平时常规切镜保持默认关闭即可。"
+        "### ✂️ 裁切锁色 & 局部接缝桥接（`ShotVaultSeamTrim` + `AchengSeamBridge`）\n\n- **`ShotVaultSeamTrim` (#162)**：按 `shot_pipe` 自动执行 22/39 帧同步裁头与 CIE Lab 线性锁色（端口 0 保持 `IMAGE → IMAGE`，支持 `Ctrl + B` 旁路）。\n- **`AchengSeamBridge` (#211)**：默认置 `off` 保持每段 `segments` 原始纯净，避免双重处理。\n- **🧪 实验功能声明**：接缝修复（含 `AchengSeamBridge`、`AchengFuzzPuppyClipMerge` 修复模式与 Tab ② 单镜修缝）目前处于**实验性阶段**，**仅适用于画面机位与分镜保持不变时、因续接生成导致的画面突变修补**；平时常规多切镜工作流保持默认关闭（`off`）即可。"
       ],
       "widgets_values_named": {
-        "text": "### 接缝修复架构（FuzzPuppy 1:1 迁移版）\n\n- **#162 ShotVault Seam Trim**：负责 22 帧同步裁切与 CIE Lab 线性锁色。\n- **#211 Acheng Seam Bridge**：默认置 `off` 保持每段 `segments` 原始纯净，避免双重处理（需要单段图像级修补时可切 `fuzzpuppy_align` 或 `auto`）。\n- **真正接缝合并已移至右侧 #188 `Acheng FuzzPuppy Clip Merge`**：同时拿到 A 尾 + B 头（含音频），1:1 执行官网 `eI` 双硬切门控 + `rife422lite` ONNX 对称跨缝 5 帧桥接 / `eS` 稠密网格非刚性对齐 + 30ms 音频交叉淡化。\n- **🧪 实验功能提示**：接缝修复仅适用于机位与分镜保持不变时、因续接生成导致的画面突变修补；平时常规切镜保持默认关闭即可。"
+        "text": "### ✂️ 裁切锁色 & 局部接缝桥接（`ShotVaultSeamTrim` + `AchengSeamBridge`）\n\n- **`ShotVaultSeamTrim` (#162)**：按 `shot_pipe` 自动执行 22/39 帧同步裁头与 CIE Lab 线性锁色（端口 0 保持 `IMAGE → IMAGE`，支持 `Ctrl + B` 旁路）。\n- **`AchengSeamBridge` (#211)**：默认置 `off` 保持每段 `segments` 原始纯净，避免双重处理。\n- **🧪 实验功能声明**：接缝修复（含 `AchengSeamBridge`、`AchengFuzzPuppyClipMerge` 修复模式与 Tab ② 单镜修缝）目前处于**实验性阶段**，**仅适用于画面机位与分镜保持不变时、因续接生成导致的画面突变修补**；平时常规多切镜工作流保持默认关闭（`off`）即可。"
       },
       "color": "#1d3547",
       "bgcolor": "#162836"
@@ -10491,10 +10491,10 @@
         }
       },
       "widgets_values": [
-        "### 两条输出链 & FuzzPuppy 无缝合并说明\n\n- **#188 `Acheng FuzzPuppy Clip Merge`**：直接替代原生 `ConcatenateVideo`；仅解码相邻两段边界，历史已合并段零重编码流拷贝。\n- **所见即所得联动 (`shot_pipe` 已接 `#293`)**：默认 `enable_repair = false`（原版无损直拼，与 `ShotVault Plan #20` 预览及 `#201 总装` 100% 一致）。仅当在分镜规划台单镜开启修复（且选择「修复版」）或手动开启 `#188 enable_repair` 时才执行修补，并自动将 3 秒修复对比预览同步回分镜规划台。\n- **自动硬切保护 (`eI`)**：开启修复时，`structureError < 0.38` 且 `flowCoverage > 0.08` 才平滑；换机位/大跳变自动回落零重编码硬切。\n- **模式切换**：`rife (5帧 + rife422lite_fp32.onnx)` 效果与官网一致；静景文戏可切 `auto_align`（稠密 LK + 边缘感知扩散 + 0.8s 缓释）；外挂严格对拍母带 MV 时开启 `preserve_duration = true` 锁死零帧差。\n- **🧪 实验功能提示**：接缝修复仅适用于机位与分镜保持不变时、因续接生成导致的画面突变修补；平时常规切镜保持默认关闭即可。"
+        "### 📦 入库归档 · 无损拼接 & 总装导出（`ShotVaultSave` / `AchengFuzzPuppyClipMerge` / `ShotVaultAssemble`）\n\n- **`ShotVaultSave` (#181)**：将每镜成品、缩略图、3 秒接缝对比片段与 `.h3ctx.safetensors` 上下文落盘归档；单段重抽勾选自动重合时，保存后立即刷新 `master.mp4`。\n- **`AchengFuzzPuppyClipMerge` (#188)**：替代原生 `ConcatenateVideo`，仅解码相邻两段边界，历史已合并段**零重编码流拷贝**。默认 `enable_repair = false`（原版无损直拼），与 `ShotVaultPlan` 预览所见即所得联动。\n- **`ShotVaultAssemble` (#201)**：默认 `defer_until_complete`（等全部镜头跑完后再单遍无漂移封装总成片、`.manifest.json` 校验清单与达芬奇 `.fcpxml`）。\n- **🧪 实验功能声明**：接缝修复仅适用于机位与分镜保持不变时、因续接生成导致的画面突变修补；平时常规切镜基本无需打开。"
       ],
       "widgets_values_named": {
-        "text": "### 两条输出链 & FuzzPuppy 无缝合并说明\n\n- **#188 `Acheng FuzzPuppy Clip Merge`**：直接替代原生 `ConcatenateVideo`；仅解码相邻两段边界，历史已合并段零重编码流拷贝。\n- **所见即所得联动 (`shot_pipe` 已接 `#293`)**：默认 `enable_repair = false`（原版无损直拼，与 `ShotVault Plan #20` 预览及 `#201 总装` 100% 一致）。仅当在分镜规划台单镜开启修复（且选择「修复版」）或手动开启 `#188 enable_repair` 时才执行修补，并自动将 3 秒修复对比预览同步回分镜规划台。\n- **自动硬切保护 (`eI`)**：开启修复时，`structureError < 0.38` 且 `flowCoverage > 0.08` 才平滑；换机位/大跳变自动回落零重编码硬切。\n- **模式切换**：`rife (5帧 + rife422lite_fp32.onnx)` 效果与官网一致；静景文戏可切 `auto_align`（稠密 LK + 边缘感知扩散 + 0.8s 缓释）；外挂严格对拍母带 MV 时开启 `preserve_duration = true` 锁死零帧差。\n- **🧪 实验功能提示**：接缝修复仅适用于机位与分镜保持不变时、因续接生成导致的画面突变修补；平时常规切镜保持默认关闭即可。"
+        "text": "### 📦 入库归档 · 无损拼接 & 总装导出（`ShotVaultSave` / `AchengFuzzPuppyClipMerge` / `ShotVaultAssemble`）\n\n- **`ShotVaultSave` (#181)**：将每镜成品、缩略图、3 秒接缝对比片段与 `.h3ctx.safetensors` 上下文落盘归档；单段重抽勾选自动重合时，保存后立即刷新 `master.mp4`。\n- **`AchengFuzzPuppyClipMerge` (#188)**：替代原生 `ConcatenateVideo`，仅解码相邻两段边界，历史已合并段**零重编码流拷贝**。默认 `enable_repair = false`（原版无损直拼），与 `ShotVaultPlan` 预览所见即所得联动。\n- **`ShotVaultAssemble` (#201)**：默认 `defer_until_complete`（等全部镜头跑完后再单遍无漂移封装总成片、`.manifest.json` 校验清单与达芬奇 `.fcpxml`）。\n- **🧪 实验功能声明**：接缝修复仅适用于机位与分镜保持不变时、因续接生成导致的画面突变修补；平时常规切镜基本无需打开。"
       },
       "color": "#1d3547",
       "bgcolor": "#162836"
@@ -10750,10 +10750,10 @@
         }
       },
       "widgets_values": [
-        "### 三路视频\n\n- **complete_run**：本轮累计视频。\n- **through_segment**：每轮的累计预览。\n- **segment**：独立片段。\n\nShotVault Assemble 另外写入 ShotVault 项目 master 目录；以实际报告路径为准。接缝后端与改帧数见 后台接缝诊断。"
+        "### 🎞️ 三路监看输出 & 主成片路径（`SaveVideo` + `ShotVaultAssemble`）\n\n- **`complete_run`**（最终成片）：本轮完整跑完后的累计视频。\n- **`through_segment`**（累计预览）：每跑完一段实时输出的累计进度视频（长片运行前请确认磁盘空间）。\n- **`segment`**（每段独立预览）：单镜独立成片。\n- **推荐导出方式**：日常单段重抽或切换历史 Take 后，直接点击 `ShotVaultPlan` 顶栏 **`🎬 导出成片`**（如有变更会自动亮起 `待更新`），免重跑模型秒级导出最新 `output/ShotVault/<项目名>/master/` 完整成片与 FCPXML。"
       ],
       "widgets_values_named": {
-        "text": "### 三路视频\n\n- **complete_run**：本轮累计视频。\n- **through_segment**：每轮的累计预览。\n- **segment**：独立片段。\n\nShotVault Assemble 另外写入 ShotVault 项目 master 目录；以实际报告路径为准。接缝后端与改帧数见 后台接缝诊断。"
+        "text": "### 🎞️ 三路监看输出 & 主成片路径（`SaveVideo` + `ShotVaultAssemble`）\n\n- **`complete_run`**（最终成片）：本轮完整跑完后的累计视频。\n- **`through_segment`**（累计预览）：每跑完一段实时输出的累计进度视频（长片运行前请确认磁盘空间）。\n- **`segment`**（每段独立预览）：单镜独立成片。\n- **推荐导出方式**：日常单段重抽或切换历史 Take 后，直接点击 `ShotVaultPlan` 顶栏 **`🎬 导出成片`**（如有变更会自动亮起 `待更新`），免重跑模型秒级导出最新 `output/ShotVault/<项目名>/master/` 完整成片与 FCPXML。"
       },
       "color": "#432",
       "bgcolor": "#653"
@@ -10819,7 +10819,6 @@
           "links": []
         }
       ],
-      "title": "Acheng Seam Bridge · 图像接缝修复",
       "properties": {
         "Node name for S&R": "AchengSeamBridge",
         "ue_properties": {
@@ -12778,8 +12777,8 @@
       "id": 256,
       "type": "GetNode",
       "pos": [
-        9196.43402174733,
-        166.91168033091972
+        8762.34102567086,
+        166.91168033091967
       ],
       "size": [
         210,
@@ -14537,15 +14536,15 @@
       "id": 295,
       "type": "LoraLoaderModelOnly",
       "pos": [
-        8238.503143613256,
-        167.11510662461495
+        7804.410147536788,
+        167.1151066246149
       ],
       "size": [
         355,
         110
       ],
       "flags": {},
-      "order": 285,
+      "order": 280,
       "mode": 0,
       "inputs": [
         {
@@ -14661,19 +14660,19 @@
           "name": "MODEL",
           "type": "MODEL",
           "links": [
-            31
+            292
           ]
         }
       ],
       "properties": {
         "cnr_id": "comfy-core",
         "ver": "0.45.0",
+        "Node name for S&R": "LoraLoaderModelOnly",
         "ue_properties": {
           "widget_ue_connectable": {},
           "version": "7.7",
           "input_ue_unconnectable": {}
-        },
-        "Node name for S&R": "LoraLoaderModelOnly"
+        }
       },
       "widgets_values": [
         "minimax H3\\dmad_minimax_h3_8step_full_critic_comfyui.safetensors",
@@ -14719,12 +14718,12 @@
       "properties": {
         "cnr_id": "comfy-core",
         "ver": "0.45.0",
+        "Node name for S&R": "LoraLoaderModelOnly",
         "ue_properties": {
           "widget_ue_connectable": {},
           "version": "7.7",
           "input_ue_unconnectable": {}
-        },
-        "Node name for S&R": "LoraLoaderModelOnly"
+        }
       },
       "widgets_values": [
         "minimax H3\\minimax_h3_DMAD_4step_full_lora_avg_rank_39_bf16.safetensors",
@@ -14770,12 +14769,12 @@
       "properties": {
         "cnr_id": "comfy-core",
         "ver": "0.45.0",
+        "Node name for S&R": "LoraLoaderModelOnly",
         "ue_properties": {
           "widget_ue_connectable": {},
           "version": "7.7",
           "input_ue_unconnectable": {}
-        },
-        "Node name for S&R": "LoraLoaderModelOnly"
+        }
       },
       "widgets_values": [
         "minimax H3\\minimax_h3_fl2v_turbo_4step_v1.2_768p_comfyui_resized_avg_rank_64_bf16.safetensors",
@@ -15003,14 +15002,6 @@
       46,
       0,
       48,
-      0,
-      "MODEL"
-    ],
-    [
-      31,
-      297,
-      0,
-      51,
       0,
       "MODEL"
     ],
@@ -16407,60 +16398,36 @@
       "MODEL"
     ],
     [
-      26,
-      42,
+      287,
+      298,
       0,
-      43,
-      3,
-      "INT"
+      299,
+      0,
+      "MODEL"
     ],
     [
-      235,
-      256,
+      288,
+      268,
       0,
-      56,
-      1,
-      "*"
+      297,
+      0,
+      "MODEL"
     ],
     [
-      46,
-      47,
-      0,
-      64,
-      1,
-      "*"
-    ],
-    [
-      57,
-      74,
-      0,
-      76,
-      3,
-      "INT"
-    ],
-    [
-      87,
-      101,
-      0,
-      106,
-      2,
-      "INT"
-    ],
-    [
-      269,
       290,
+      236,
       0,
-      188,
-      3,
-      "BOOLEAN"
+      298,
+      0,
+      "MODEL"
     ],
     [
-      205,
-      213,
+      291,
+      299,
       0,
-      211,
-      3,
-      "BOOLEAN"
+      59,
+      0,
+      "MODEL"
     ],
     [
       234,
@@ -16543,6 +16510,38 @@
       "VIDEO"
     ],
     [
+      26,
+      42,
+      0,
+      43,
+      3,
+      "INT"
+    ],
+    [
+      235,
+      256,
+      0,
+      56,
+      1,
+      "*"
+    ],
+    [
+      46,
+      47,
+      0,
+      64,
+      1,
+      "*"
+    ],
+    [
+      57,
+      74,
+      0,
+      76,
+      3,
+      "INT"
+    ],
+    [
       60,
       76,
       2,
@@ -16591,34 +16590,34 @@
       "STRING"
     ],
     [
-      287,
-      298,
+      87,
+      101,
       0,
-      299,
-      0,
-      "MODEL"
+      106,
+      2,
+      "INT"
     ],
     [
-      288,
-      268,
+      269,
+      290,
       0,
+      188,
+      3,
+      "BOOLEAN"
+    ],
+    [
+      205,
+      213,
+      0,
+      211,
+      3,
+      "BOOLEAN"
+    ],
+    [
+      292,
       297,
       0,
-      "MODEL"
-    ],
-    [
-      290,
-      236,
-      0,
-      298,
-      0,
-      "MODEL"
-    ],
-    [
-      291,
-      299,
-      0,
-      59,
+      51,
       0,
       "MODEL"
     ]
@@ -16796,10 +16795,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.4950000000000013,
+      "scale": 0.4950000000000008,
       "offset": [
-        1050.8726385106106,
-        416.54884515986515
+        306.73872165599926,
+        1133.9754476877208
       ]
     },
     "ue_links": [],
