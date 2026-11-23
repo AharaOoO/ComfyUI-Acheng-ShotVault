@@ -183,7 +183,18 @@ def analyze_seam_diagnostics(
 ) -> dict:
     """SGUN-inspired seam pixel-jump and brightness-step diagnostics at `join_frame`."""
     if prev_clean_tail is None or prev_clean_tail.shape[0] == 0 or curr_frames.shape[0] == 0:
-        return {"status": "ok", "join_frame": 0, "join_sec": 0.0, "fps": int(fps), "messages": ["首段或硬切起始无前段接缝。"], "events": []}
+        msg_zh = ["首段或硬切起始无前段接缝。"]
+        msg_en = ["First shot or hard cut; no preceding seam."]
+        return {
+            "status": "ok",
+            "join_frame": 0,
+            "join_sec": 0.0,
+            "fps": int(fps),
+            "messages": msg_zh,
+            "messages_zh": msg_zh,
+            "messages_en": msg_en,
+            "events": [],
+        }
     fps_i = max(1, int(fps))
     n_prev = min(int(prev_clean_tail.shape[0]), fps_i)
     n_curr = min(int(curr_frames.shape[0]), 2 * fps_i)

@@ -99,8 +99,8 @@ class ShotVaultPlan:
             "required": {
                 "project_name": ("STRING", {"default": "MyH3Film"}),
                 "script_format": (["auto", "1114_markdown", "kkdemabu_dual_jsonc", "cinema_pack_json"], {"default": "auto"}),
-                "common_prompt": ("STRING", {"multiline": True, "default": "电影级写实光影，高动态纹理"}),
-                "script_text": ("STRING", {"multiline": True, "default": "& 5.0 &\n主角沉肩蓄势，长拳破风\n===\n& 5.0 &\n顺势近身连击，气流震散尘埃"}),
+                "common_prompt": ("STRING", {"multiline": True, "default": ""}),
+                "script_text": ("STRING", {"multiline": True, "default": ""}),
                 "aspect_ratio": (list(ASPECT_PRESETS.keys()), {"default": "16:9 (1344x768)"}),
                 "megapixels": ("FLOAT", {"default": 1.0, "min": 0.25, "max": 2.50, "step": 0.05}),
                 "fps": ("INT", {"default": 24, "min": 12, "max": 60}),
@@ -253,7 +253,9 @@ class ShotVaultPlan:
             else:
                 raise ValueError(
                     "ShotVault: 当前开启了『🎵 音频驱动 · 整曲母带切片』，但左下角 Group 4『开关 · 整曲母带音频』"
-                    "仍处于旁路状态（未接入母带音频）！请点亮该开关，或在分镜规划顶栏切回『🎬 常规模式』。"
+                    "仍处于旁路状态（未接入母带音频）！请点亮该开关，或在分镜规划顶栏切回『🎬 常规模式』。\n"
+                    "(EN) 'Audio-Driven · Master Track Slice' is enabled, but master_audio_in is bypassed/unconnected. "
+                    "Please un-bypass the master audio node or switch back to 'Regular' mode."
                 )
         audio_drive_active = (effective_audio_mode in ("per_shot_audio_dir", "master_song_slice")) or has_explicit_shot_audio
         if use_per_shot_fallback or effective_audio_mode == "per_shot_audio_dir" or (effective_audio_mode == "none" and has_explicit_shot_audio):

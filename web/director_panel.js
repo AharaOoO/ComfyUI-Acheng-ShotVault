@@ -1,6 +1,6 @@
 import { app } from "../../scripts/app.js";
 import { api } from "../../scripts/api.js";
-import { getLang, toggleLang, t, fmtBytes } from "./i18n.js";
+import { getLang, toggleLang, t, fmtBytes, pickOutdatedReasons } from "./i18n.js";
 import { injectStyles, PANEL_DEFAULTS } from "./panel/styles.js";
 import { openFocusPromptModal } from "./panel/prompt_modal.js";
 import { renderExportModal } from "./panel/export_modal.js";
@@ -37,7 +37,7 @@ function appendSafe(parent, ...items) {
 
 function extractCardSnippet(prompt, maxLen = 36) {
   const raw = String(prompt || "").trim();
-  if (!raw) return "(待填提示词)";
+  if (!raw) return t("snippet_empty");
   // Prefer actual narrative summary or [Shot 1] line instead of repetitive `subject_definitions:` boilerplate
   const mSum = raw.match(/(?:^|\n)summary\s*:\s*(?:\[[^\]]*\]\s*)?([^\n]+)/i);
   if (mSum && mSum[1]?.trim()) return mSum[1].trim().slice(0, maxLen);
@@ -74,7 +74,7 @@ function makeDraggableTextarea({
 
   const grip = el("div", {
     class: "sv-ta-grip",
-    title: "上下拖拽调整输入框高度（自动记忆）",
+    title: t("grip_title"),
   });
   grip.addEventListener("pointerdown", (e) => {
     e.stopPropagation();
@@ -124,9 +124,9 @@ function hideNativeWidgets(node) {
 }
 
 const GEAR_MATRIX = {
-  22: { overlap: 22, trim: 22, taperTail: 22, ramp: 4, audioGuide: 20, feather: 7, pair: "17+5 (7帧Latent)" },
-  39: { overlap: 39, trim: 39, taperTail: 39, ramp: 6, audioGuide: 37, feather: 12, pair: "34+5 (12帧Latent)" },
-  56: { overlap: 56, trim: 56, taperTail: 56, ramp: 8, audioGuide: 54, feather: 16, pair: "51+5 (17帧Latent)" },
+  22: { overlap: 22, trim: 22, taperTail: 22, ramp: 4, audioGuide: 20, feather: 7, pairKey: "gear_pair_22" },
+  39: { overlap: 39, trim: 39, taperTail: 39, ramp: 6, audioGuide: 37, feather: 12, pairKey: "gear_pair_39" },
+  56: { overlap: 56, trim: 56, taperTail: 56, ramp: 8, audioGuide: 54, feather: 16, pairKey: "gear_pair_56" },
 };
 
 function computeGear(gearVal, isCont = true) {
@@ -135,10 +135,10 @@ function computeGear(gearVal, isCont = true) {
   if (!isCont) {
     return {
       overlap: 0, trim: 0, taperTail: Math.max(22, spec.taperTail),
-      ramp: spec.ramp, audioGuide: 0, feather: spec.feather, pair: "首段无前序 (0帧)",
+      ramp: spec.ramp, audioGuide: 0, feather: spec.feather, pair: t("gear_pair_first"),
     };
   }
-  return spec;
+  return { ...spec, pair: t(spec.pairKey) };
 }
 
 function el(tag, attrs = {}, children = []) {
@@ -204,7 +204,7 @@ async function uploadMediaFile(file, subfolder = "shotvault") {
   fd.append("subfolder", subfolder);
   const resp = await api.fetchApi("/shotvault/upload", { method: "POST", body: fd });
   const data = await resp.json();
-  if (!data?.ok) throw new Error(data?.error || "上传失败");
+  if (!data?.ok) throw new Error(data?.error || t("err_upload_failed"));
   return data;
 }
 
@@ -234,7 +234,7 @@ function pickLocalFile(accept, cb) {
     const f = inp.files?.[0];
     inp.remove();
     if (!f) return;
-    try { await cb(f); } catch (err) { showToast(`上传失败: ${err?.message || err}`, 2800, true); }
+    try { await cb(f); } catch (err) { showToast(t("toast_upload_failed", { msg: err?.message || err }), 2800, true); }
   };
   document.body.appendChild(inp);
   inp.click();
@@ -606,14 +606,14 @@ function attachPanelController(node) {
     const issues = [];
     const { loads, dispatches } = findDownstreamVaultNodes();
     if (!loads.length && !dispatches.length) {
-      issues.push({ lv: "warn", shot: -1, msg: "画布未检测到下游 ShotVaultLoad 或 ShotVaultLoopDispatch，请至少连接一个调度节点" });
+      issues.push({ lv: "warn", shot: -1, msg: t("chk_no_downstream") });
     }
     if (state.plan.audio_drive_mode === "master_song_slice" && !isUpstreamAudioActive()) {
-      issues.push({ lv: "err", shot: -1, msg: "当前选为「整曲母带切片」，但左下角 Group 4 整曲母带音频处于 Bypass 旁路状态（请点亮或切回常规模式）" });
+      issues.push({ lv: "err", shot: -1, msg: t("chk_audio_bypass") });
     }
     state.plan.shots.forEach((s, idx) => {
-      if (!String(s.prompt || "").trim()) issues.push({ lv: "err", shot: idx, msg: `镜头 #${idx + 1} 提示词为空` });
-      if (Number(s.duration_sec || 0) <= 0.25) issues.push({ lv: "warn", shot: idx, msg: `镜头 #${idx + 1} 时长过短 (${s.duration_sec}s)` });
+      if (!String(s.prompt || "").trim()) issues.push({ lv: "err", shot: idx, msg: t("chk_empty_prompt", { i: idx + 1 }) });
+      if (Number(s.duration_sec || 0) <= 0.25) issues.push({ lv: "warn", shot: idx, msg: t("chk_short_dur", { i: idx + 1, dur: s.duration_sec }) });
     });
     return issues;
   }
@@ -647,7 +647,7 @@ function attachPanelController(node) {
   function composeMasterFromShots() {
     const txt = state.plan.shots.map((s, idx) => {
       const lines = [`& ${Number(s.duration_sec || 5.0)} &`];
-      if (Number(s.shot_type ?? 1) === 0) lines.push("@type=文戏");
+      if (Number(s.shot_type ?? 1) === 0) lines.push(t("tag_type_drama"));
       if (idx > 0 && s.hard_cut) lines.push("@cut@");
       else if (idx > 0 && !s.hard_cut) lines.push("@continue@");
       else if (idx === 0 && !s.hard_cut && state.plan.seed_video_path) lines.push("@continue@");
@@ -695,7 +695,7 @@ function attachPanelController(node) {
       el("span", { style: { fontSize: "10.5px", color: "#7f889e" }, text: "📐" }),
       el("button", { class: "sv-btn xs", text: t("sz_compact"), title: "1020×720", onclick: () => applyPanelSize(PANEL_DEFAULTS.PRESETS.compact.w, PANEL_DEFAULTS.PRESETS.compact.h) }),
       el("button", { class: "sv-btn xs", text: t("sz_std"), title: "1180×840", onclick: () => applyPanelSize(PANEL_DEFAULTS.PRESETS.standard.w, PANEL_DEFAULTS.PRESETS.standard.h) }),
-      el("button", { class: "sv-btn xs", text: t("sz_wide"), title: "1460×960 (宽屏自动左右双栏)", onclick: () => applyPanelSize(PANEL_DEFAULTS.PRESETS.wide.w, PANEL_DEFAULTS.PRESETS.wide.h) }),
+      el("button", { class: "sv-btn xs", text: t("sz_wide"), title: t("sz_wide_title"), onclick: () => applyPanelSize(PANEL_DEFAULTS.PRESETS.wide.w, PANEL_DEFAULTS.PRESETS.wide.h) }),
     ]);
     appendSafe(ftrEl, el("span", { style: { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }, text: summaryText }), sizeBtns);
   }
@@ -723,25 +723,25 @@ function attachPanelController(node) {
           class: "sv-inp",
           value: String(getW("project_name", "MyH3Film")),
           style: { width: "120px" },
-          title: "项目存档目录名 / Project folder name",
+          title: t("proj_input_title"),
           oninput: (e) => { setW("project_name", e.target.value); scheduleSync(); },
         });
     const modeBtns = [
       el("button", {
         class: `sv-btn ${!audioOn ? "pri" : ""}`,
         text: t("btn_regular"),
-        title: "Regular mode: switch freely between 22f and 39f overlap",
+        title: t("title_btn_regular"),
         onclick: () => {
           state.plan.audio_drive_mode = "none";
           scheduleSync(true);
           renderAll();
-          showToast(getLang() === "en" ? "Switched to Regular mode (22f / 39f)" : "已切换为常规模式：可自由选择 22 / 39 帧衔接档位");
+          showToast(t("toast_mode_regular"));
         },
       }),
       el("button", {
         class: `sv-btn ${audioOn ? "ok" : ""}`,
         text: t("btn_audio"),
-        title: "Audio-driven mode: auto-locks 39f overlap (zero sub-frame drift)",
+        title: t("title_btn_audio"),
         onclick: () => {
           if (state.plan.audio_drive_mode === "none") {
             state.plan.audio_drive_mode = isUpstreamAudioActive() ? "master_song_slice" : "per_shot_audio_dir";
@@ -749,7 +749,7 @@ function attachPanelController(node) {
           state.plan.context_frames = 39;
           scheduleSync(true);
           renderAll();
-          showToast(getLang() === "en" ? "Switched to Audio-Driven mode (locked 39f)" : "已切换音频驱动，自动锁定 39 帧档");
+          showToast(t("toast_mode_audio"));
         },
       }),
       audioOn
@@ -765,12 +765,12 @@ function attachPanelController(node) {
     const rlPill = state.plan.retry_lock?.enabled
       ? el("button", {
           class: "sv-btn warn",
-          text: getLang() === "en" ? `🎯 Locked #${state.plan.retry_lock.shot_index} ×` : `🎯 单段锁定 #${state.plan.retry_lock.shot_index} ×`,
+          text: t("rl_pill_locked", { i: state.plan.retry_lock.shot_index }),
           onclick: () => {
             state.plan.retry_lock.enabled = false;
             scheduleSync(true);
             renderAll();
-            showToast(getLang() === "en" ? "Single-shot lock cleared" : "已解除单段重抽锁定，恢复全片循环轮数");
+            showToast(t("toast_rl_unlocked"));
           },
         })
       : null;
@@ -778,7 +778,7 @@ function attachPanelController(node) {
       ? [el("span", { class: "sv-link-lbl", text: t("lbl_gear_locked") })]
       : [22, 39].map((g) => el("button", {
           class: `sv-btn ${Number(state.plan.context_frames) === g ? "pri" : ""}`,
-          text: getLang() === "en" ? `${g}f` : `${g}帧`,
+          text: t("gear_btn_lbl", { g }),
           onclick: () => {
             state.plan.context_frames = g;
             scheduleSync(true);
@@ -802,6 +802,7 @@ function attachPanelController(node) {
     const exportBtnText = masterOutdated
       ? t("btn_export_master_outdated")
       : (activeRepairCnt > 0 ? t("btn_export_master_rep", { n: activeRepairCnt }) : t("btn_export_master"));
+    const reasonSep = getLang() === "en" ? ", " : "、";
     appendSafe(
       hdrEl,
       el("div", { class: "sv-title" }, [t("app_title"), el("span", { class: "sv-badge", text: t("badge_summary", { n: state.plan.shots.length, dur: totalDur, rounds: loopRounds }) })]),
@@ -817,7 +818,7 @@ function attachPanelController(node) {
         class: `sv-btn ${masterOutdated ? "warn" : "ok"}`,
         text: exportBtnText,
         title: masterOutdated
-          ? `待合入变更：${(syncStatus.outdated_reasons || []).join("、")}`
+          ? t("outdated_tip", { reasons: pickOutdatedReasons(syncStatus).join(reasonSep) })
           : t("exp_title"),
         onclick: async () => {
           state.exportOpen = true;
@@ -828,7 +829,7 @@ function attachPanelController(node) {
       el("button", {
         class: "sv-btn act",
         text: t("btn_lang"),
-        title: "Switch Chinese / English UI (also syncs SeamBridge nodes)",
+        title: t("title_btn_lang"),
         onclick: () => {
           toggleLang();
           showToast(t("toast_lang_switched"));
@@ -877,22 +878,22 @@ function attachPanelController(node) {
         try {
           const res = await uploadMediaFile(f, subfolder);
           onUpdate(k, res.rel_path);
-        } catch (err) { showToast(`上传失败: ${err.message}`); }
+        } catch (err) { showToast(t("toast_upload_failed", { msg: err.message })); }
       };
       const imgBox = el("div", {
         class: "sv-slot-img",
-        title: eff ? eff : `点击上传或拖拽图片到 <Picture ${k + 1}>`,
+        title: eff ? eff : t("slot_upload_title", { k: k + 1 }),
         onclick: () => pickLocalFile("image/*", async (f) => {
           try {
             const res = await uploadMediaFile(f, subfolder);
             onUpdate(k, res.rel_path);
-          } catch (err) { showToast(`上传失败: ${err.message}`); }
+          } catch (err) { showToast(t("toast_upload_failed", { msg: err.message })); }
         }),
       });
       if (eff) imgBox.appendChild(el("img", { src: mediaUrl(eff) }));
       else imgBox.textContent = `+ Picture ${k + 1}`;
       const ft = el("div", { class: "sv-slot-ft" }, [
-        el("span", { text: own ? `槽${k + 1} <Pic ${k + 1}> 专属` : (gVal ? `槽${k + 1} <Pic ${k + 1}> 继承` : `槽${k + 1} <Pic ${k + 1}> 空`) }),
+        el("span", { text: own ? t("slot_own", { k: k + 1 }) : (gVal ? t("slot_inherited", { k: k + 1 }) : t("slot_empty", { k: k + 1 })) }),
         own ? el("button", { class: "sv-btn dng", style: { padding: "1px 5px", fontSize: "10px" }, text: "×", onclick: (e) => { e.stopPropagation(); onUpdate(k, ""); } }) : null,
       ]);
       box.append(imgBox, ft);
@@ -907,7 +908,7 @@ function attachPanelController(node) {
     const svMap = new Map((state.serverState?.shots || []).map((x) => [Number(x.shot_index), x]));
     state.plan.shots.forEach((s, idx) => {
       const sv = svMap.get(idx + 1);
-      const actTake = (sv?.takes || []).find((t) => t.take_id === sv?.active_take_id) || (sv?.takes || [])[0];
+      const actTake = (sv?.takes || []).find((tk) => tk.take_id === sv?.active_take_id) || (sv?.takes || [])[0];
       const ownCnt = (s.ref_slots || []).filter(Boolean).length;
       const effImg = s.ref_slots.find(Boolean) || (s.inherit_global_refs ? state.plan.global_ref_slots.find(Boolean) : "");
       const thumbSrc = actTake?.thumb_rel ? mediaUrl(actTake.thumb_rel, String(getW("project_name", "MyH3Film"))) : (effImg ? mediaUrl(effImg) : "");
@@ -921,17 +922,17 @@ function attachPanelController(node) {
       });
       const th = el("div", { class: "sv-thumb" });
       if (thumbSrc) th.appendChild(el("img", { src: thumbSrc }));
-      else th.textContent = `#${idx + 1} 未出图`;
+      else th.textContent = t("card_unrendered", { i: idx + 1 });
       const badges = el("div", { class: "sv-row", style: { gap: "3px", justifyContent: "space-between" } }, [
         el("span", { style: { fontWeight: "700" }, text: `#${idx + 1}` }),
-        el("span", { class: isAct ? "sv-tag-a" : "sv-tag-d", text: isAct ? "⚔武" : "🎭文" }),
+        el("span", { class: isAct ? "sv-tag-a" : "sv-tag-d", text: isAct ? t("tag_action_short") : t("tag_drama_short") }),
         el("span", {
           class: "sv-badge",
           style: (idx > 0 && s.hard_cut)
             ? { background: "#173c47", color: "#9ee8ff", borderColor: "#2d7c94" }
             : {},
-          title: (idx > 0 && s.hard_cut) ? "@cut@ 切镜清零：重新起帧" : `${effGear} 帧无缝续接`,
-          text: s.hard_cut ? (idx > 0 ? "✂@cut@" : "首镜") : `${audioOn ? "🔒" : "🔗"}${effGear}f`,
+          title: (idx > 0 && s.hard_cut) ? t("card_cut_tip") : t("card_cont_tip", { g: effGear }),
+          text: s.hard_cut ? (idx > 0 ? "✂@cut@" : t("card_first")) : `${audioOn ? "🔒" : "🔗"}${effGear}f`,
         }),
         el("span", { class: "sv-card-dur", style: { color: "#9da5ba", fontSize: "10.5px" }, text: `${Number(s.duration_sec || 5).toFixed(1)}s` }),
       ]);
@@ -966,46 +967,46 @@ function attachPanelController(node) {
     });
 
     const gearNode = audioOn
-      ? el("span", { class: "sv-link-lbl", text: "🔒 39帧 (音频锁定)" })
+      ? el("span", { class: "sv-link-lbl", text: t("ed_gear_audio_lock") })
       : el("select", {
           class: "sv-sel",
           onchange: (e) => { s.overlap_override = Number(e.target.value || 0); scheduleSync(true); renderFilmstrip(); renderShotEditor(); },
         }, [
-          el("option", { value: "0", selected: s.overlap_override === 0, text: `跟随全局 (${state.plan.context_frames}f)` }),
-          el("option", { value: "22", selected: s.overlap_override === 22, text: "22帧 (17+5 · 7帧Latent)" }),
-          el("option", { value: "39", selected: s.overlap_override === 39, text: "39帧 (34+5 · 12帧Latent)" }),
-          el("option", { value: "56", selected: s.overlap_override === 56, text: "56帧 (51+5 · 17帧Latent)" }),
+          el("option", { value: "0", selected: s.overlap_override === 0, text: t("ed_gear_follow", { g: state.plan.context_frames }) }),
+          el("option", { value: "22", selected: s.overlap_override === 22, text: t("ed_gear_22") }),
+          el("option", { value: "39", selected: s.overlap_override === 39, text: t("ed_gear_39") }),
+          el("option", { value: "56", selected: s.overlap_override === 56, text: t("ed_gear_56") }),
         ]);
 
     const topCtrl = el("div", { class: "sv-row" }, [
-      el("strong", { text: `镜头 #${idx + 1} 精编` }),
+      el("strong", { text: t("ed_shot_hdr", { i: idx + 1 }) }),
       el("button", {
         class: `sv-btn ${Number(s.shot_type ?? 1) === 1 ? "warn" : ""}`,
-        text: "⚔ 武戏流",
+        text: t("btn_action_flow"),
         onclick: () => { s.shot_type = 1; scheduleSync(); renderFilmstrip(); renderShotEditor(); },
       }),
       el("button", {
         class: `sv-btn ${Number(s.shot_type ?? 1) === 0 ? "pri" : ""}`,
-        text: "🎭 文戏流",
+        text: t("btn_drama_flow"),
         onclick: () => { s.shot_type = 0; scheduleSync(); renderFilmstrip(); renderShotEditor(); },
       }),
-      el("span", { text: "& 时长(s) &:" }),
+      el("span", { text: t("lbl_dur_amp") }),
       durInp,
-      el("span", { text: "单段衔接:" }),
+      el("span", { text: t("lbl_shot_overlap") }),
       gearNode,
       el("label", { class: "sv-row", style: { gap: "4px", cursor: "pointer" } }, [
         el("input", {
           type: "checkbox", checked: s.hard_cut,
           onchange: (e) => { s.hard_cut = e.target.checked; scheduleSync(); renderFilmstrip(); renderShotEditor(); },
         }),
-        el("span", { text: "✂ 硬切(断开上下文)" }),
+        el("span", { text: t("lbl_hard_cut") }),
       ]),
       el("span", { text: "🎲Seed:" }),
       el("input", {
-        class: "sv-inp", value: s.seed_text || "", placeholder: "留空随外置", style: { width: "92px" },
+        class: "sv-inp", value: s.seed_text || "", placeholder: t("ph_seed_empty"), style: { width: "92px" },
         oninput: (e) => { s.seed_text = e.target.value; scheduleSync(); },
       }),
-      el("span", { class: "sv-badge", text: `实效: 裁剪${gInfo.trim}f · 彩噪${gInfo.taperTail}f` }),
+      el("span", { class: "sv-badge", text: t("badge_eff_gear", { trim: gInfo.trim, taper: gInfo.taperTail }) }),
     ]);
 
     const audioOnChips = isAudioMode();
@@ -1021,7 +1022,7 @@ function attachPanelController(node) {
       defaultHeight: 156,
       minHeight: 84,
       maxHeight: 520,
-      placeholder: "输入本段动作、运镜与音效提示词（支持段首 & 8 & 自动同步时长），拖动底部手柄可自由拉大，或点右上角「⛶ 放大编辑」...",
+      placeholder: t("ph_shot_prompt"),
       onInput: (e) => { s.prompt = e.target.value; patchCardPreview(idx); scheduleSync(); },
       onChange: (e) => {
         const amp = parseSingleShotAmpersand(e.target.value, s.duration_sec);
@@ -1032,18 +1033,18 @@ function attachPanelController(node) {
           durInp.value = String(amp.duration_sec);
           patchCardPreview(idx);
           scheduleSync(true);
-          showToast(`已从 & 时长 & 提取本段时长: ${amp.duration_sec}s`);
+          showToast(t("toast_dur_extracted", { dur: amp.duration_sec }));
         }
       },
     });
 
     const promptHdr = el("div", { class: "sv-box-hdr" }, [
-      el("span", { style: { fontSize: "11.5px", color: "#b6bfd6" }, text: `✍ 镜头 #${idx + 1} 提示词 (${(s.prompt || "").length} 字)` }),
+      el("span", { style: { fontSize: "11.5px", color: "#b6bfd6" }, text: t("lbl_shot_prompt_hdr", { i: idx + 1, n: (s.prompt || "").length }) }),
       el("button", {
         class: "sv-btn act xs",
         text: t("btn_focus_edit"),
         onclick: () => openFocusPromptModal({
-          title: `✍ 镜头 #${idx + 1} 提示词精编`,
+          title: t("focus_title_shot", { i: idx + 1 }),
           value: s.prompt,
           placeholder: promptTa.placeholder,
           chips: [...chipTags, "& 8 &"],
@@ -1077,21 +1078,21 @@ function attachPanelController(node) {
     })));
 
     const refBar = el("div", { class: "sv-box-hdr" }, [
-      el("span", { text: `镜头 #${idx + 1} 专属 9 图槽位 (<Picture 1..9>)` }),
+      el("span", { text: t("lbl_shot_slots", { i: idx + 1 }) }),
       el("div", { class: "sv-row" }, [
         el("label", { class: "sv-row", style: { gap: "4px", fontWeight: "normal", cursor: "pointer" } }, [
           el("input", {
             type: "checkbox", checked: s.inherit_global_refs !== false,
             onchange: (e) => { s.inherit_global_refs = e.target.checked; scheduleSync(); renderShotEditor(); },
           }),
-          el("span", { text: "空槽位继承全局9图" }),
+          el("span", { text: t("lbl_inherit_global") }),
         ]),
         el("button", {
           class: "sv-btn act",
-          text: "📋 一键沿用本段9图到后续所有段",
+          text: t("btn_copy_refs_forward"),
           onclick: () => {
             if (idx >= state.plan.shots.length - 1) {
-              return showToast("当前已是最后一段，请先新增或拆分更多分段");
+              return showToast(t("toast_already_last"));
             }
             const resolved = s.ref_slots.map((x, k) => x || (s.inherit_global_refs ? state.plan.global_ref_slots[k] : "") || "");
             for (let j = idx + 1; j < state.plan.shots.length; j++) {
@@ -1100,11 +1101,11 @@ function attachPanelController(node) {
             }
             scheduleSync(true);
             renderFilmstrip();
-            showToast(`已将镜头 #${idx + 1} 的 9 张参考图沿用到后续 ${state.plan.shots.length - idx - 1} 段`);
+            showToast(t("toast_refs_copied_forward", { i: idx + 1, n: state.plan.shots.length - idx - 1 }));
           },
         }),
         el("button", {
-          class: "sv-btn dng", text: "清空本段9图",
+          class: "sv-btn dng", text: t("btn_clear_shot_refs"),
           onclick: () => { s.ref_slots = new Array(9).fill(""); s.ref_images = []; scheduleSync(); renderFilmstrip(); renderShotEditor(); },
         }),
       ]),
@@ -1121,7 +1122,7 @@ function attachPanelController(node) {
     const mmRow = el("div", { class: "sv-row", style: { marginTop: "4px" } }, [
       el("button", {
         class: `sv-btn ${s.guide_audio ? "ok" : ""}`,
-        text: s.guide_audio ? `🎵 口型/节拍音频: ${s.guide_audio.split("/").pop()}` : "🎵 上传本段口型/节拍音频",
+        text: s.guide_audio ? t("btn_guide_audio_set", { name: s.guide_audio.split("/").pop() }) : t("btn_guide_audio_up"),
         onclick: () => pickLocalFile("audio/*", async (f) => {
           const [r, probedDur] = await Promise.all([
             uploadMediaFile(f, `shotvault/shot_${idx + 1}`),
@@ -1133,15 +1134,15 @@ function attachPanelController(node) {
           state.plan.context_frames = 39;
           scheduleSync(true);
           renderAll();
-          showToast(probedDur ? `已接入驱动音频 (${probedDur.toFixed(2)}s)，自动锁定 39 帧重叠档` : "已接入驱动音频，自动切换为音频驱动并锁定 39 帧档");
+          showToast(probedDur ? t("toast_audio_probed", { dur: probedDur.toFixed(2) }) : t("toast_audio_attached"));
         }),
       }),
-      s.guide_audio ? el("button", { class: "sv-btn dng", text: "×音频", onclick: () => { s.guide_audio = ""; scheduleSync(true); renderAll(); } }) : null,
+      s.guide_audio ? el("button", { class: "sv-btn dng", text: t("btn_clear_audio"), onclick: () => { s.guide_audio = ""; scheduleSync(true); renderAll(); } }) : null,
       el("button", {
         class: `sv-btn ${!audioOnChips && (s.ref_audios || []).length ? "ok" : ""}`,
         disabled: audioOnChips,
         style: audioOnChips ? { opacity: "0.5", cursor: "not-allowed" } : {},
-        text: audioOnChips ? "🔇 音色参考 (MV驱动下自动屏蔽)" : `🔊 音色参考 (${(s.ref_audios || []).length}/3)`,
+        text: audioOnChips ? t("btn_ref_audio_muted") : t("btn_ref_audio", { n: (s.ref_audios || []).length }),
         onclick: () => {
           if (audioOnChips) return;
           pickLocalFile("audio/*", async (f) => {
@@ -1149,31 +1150,31 @@ function attachPanelController(node) {
             s.ref_audios = [...(s.ref_audios || []), r.rel_path].slice(-3);
             scheduleSync();
             renderShotEditor();
-            showToast(`已添加音色参考: ${r.rel_path.split("/").pop()}`);
+            showToast(t("toast_ref_audio_added", { name: r.rel_path.split("/").pop() }));
           });
         },
       }),
-      (s.ref_audios || []).length ? el("button", { class: "sv-btn dng", text: "×音色", onclick: () => { s.ref_audios = []; scheduleSync(); renderShotEditor(); } }) : null,
-      audioOnChips ? el("span", { class: "sv-link-lbl", text: "🔇 音频驱动中：<Audio>音色与参考视频原声自动失效防冲突" }) : null,
+      (s.ref_audios || []).length ? el("button", { class: "sv-btn dng", text: t("btn_clear_voice"), onclick: () => { s.ref_audios = []; scheduleSync(); renderShotEditor(); } }) : null,
+      audioOnChips ? el("span", { class: "sv-link-lbl", text: t("lbl_audio_drive_mute") }) : null,
       el("button", {
         class: `sv-btn ${(s.ref_videos || []).length ? "ok" : ""}`,
-        text: `🎞 参考视频 (${(s.ref_videos || []).length}/3)`,
+        text: t("btn_ref_video", { n: (s.ref_videos || []).length }),
         onclick: () => pickLocalFile("video/*", async (f) => {
           const r = await uploadMediaFile(f, `shotvault/shot_${idx + 1}`);
           s.ref_videos = [...(s.ref_videos || []), { path: r.rel_path, with_audio: true }].slice(-3);
           scheduleSync();
           renderShotEditor();
-          showToast(`已添加参考视频: ${r.rel_path.split("/").pop()}`);
+          showToast(t("toast_ref_video_added", { name: r.rel_path.split("/").pop() }));
         }),
       }),
-      (s.ref_videos || []).length ? el("button", { class: "sv-btn dng", text: "×视频", onclick: () => { s.ref_videos = []; scheduleSync(); renderShotEditor(); } }) : null,
+      (s.ref_videos || []).length ? el("button", { class: "sv-btn dng", text: t("btn_clear_video"), onclick: () => { s.ref_videos = []; scheduleSync(); renderShotEditor(); } }) : null,
     ]);
 
     const mmChips = [];
     (s.ref_audios || []).forEach((ap, ai) => {
       const fn = String(ap || "").split("/").pop();
       mmChips.push(el("span", { class: "sv-chip", style: audioOnChips ? { opacity: "0.55" } : {} }, [
-        `${audioOnChips ? "[已屏蔽] " : ""}<Audio ${ai + 1}> ${fn} `,
+        `${audioOnChips ? t("lbl_muted_prefix") : ""}<Audio ${ai + 1}> ${fn} `,
         el("button", {
           class: "sv-btn dng", style: { padding: "0 4px", fontSize: "10px" }, text: "×",
           onclick: (e) => { e.stopPropagation(); s.ref_audios.splice(ai, 1); scheduleSync(); renderShotEditor(); },
@@ -1186,13 +1187,13 @@ function attachPanelController(node) {
       mmChips.push(el("span", { class: "sv-chip" }, [
         `<Video ${vi + 1}> ${fn} `,
         audioOnChips
-          ? el("span", { style: { fontSize: "10px", color: "#9da5ba" }, text: "🔇仅画面" })
+          ? el("span", { style: { fontSize: "10px", color: "#9da5ba" }, text: t("lbl_video_only") })
           : el("label", { style: { display: "inline-flex", alignItems: "center", gap: "2px", fontSize: "10px", cursor: "pointer" } }, [
               el("input", {
                 type: "checkbox", checked: vObj.with_audio !== false,
                 onchange: (e) => { s.ref_videos[vi] = { path: vObj.path, with_audio: e.target.checked }; scheduleSync(); },
               }),
-              "含声",
+              t("lbl_with_audio"),
             ]),
         el("button", {
           class: "sv-btn dng", style: { padding: "0 4px", fontSize: "10px" }, text: "×",
@@ -1216,7 +1217,7 @@ function attachPanelController(node) {
       defaultHeight: 150,
       minHeight: 80,
       maxHeight: 460,
-      placeholder: "支持1114正则格式：用 === 分隔各段，每段开头可写 & 8 & 指定时长与 @cut@ / @continue@：\n& 8 &\n@continue@\n第一段动作提示词...\n===\n& 8 &\n@cut@\n第二段新机位提示词...",
+      placeholder: t("ph_master_script"),
       onInput: (e) => {
         state.plan.master_script_text = e.target.value;
         setW("script_text", e.target.value);
@@ -1231,7 +1232,7 @@ function attachPanelController(node) {
     const defDurInp = el("input", {
       class: "sv-inp", type: "number", step: "0.5", min: "0.5", max: "20",
       value: String(state.plan.default_duration_sec || 5.0), style: { width: "54px" },
-      title: "段首未写 & 秒数 & 时自动采用的默认每段时长(秒)",
+      title: t("title_default_dur"),
       oninput: (e) => {
         state.plan.default_duration_sec = Math.max(0.25, parseFloat(e.target.value) || 5.0);
         if (state.plan.auto_sync_master && applyMasterSplit(true)) {
@@ -1242,7 +1243,7 @@ function attachPanelController(node) {
     });
     const commonInp = el("input", {
       class: "sv-inp", value: String(getW("common_prompt", "")), style: { flex: "1" },
-      placeholder: "全局公共画风/后缀提示词 (common_prompt，所有段落自动拼接)...",
+      placeholder: t("ph_common_prompt"),
       oninput: (e) => { setW("common_prompt", e.target.value); scheduleSync(); },
     });
     const masterLen = (state.plan.master_script_text || "").length;
@@ -1252,26 +1253,26 @@ function attachPanelController(node) {
         el("div", { class: "sv-row" }, [
           el("button", {
             class: "sv-btn xs",
-            text: state.masterExpanded ? "▾ 收起" : "▸ 展开",
+            text: state.masterExpanded ? t("btn_collapse") : t("btn_expand"),
             onclick: () => { state.masterExpanded = !state.masterExpanded; renderBody(); },
           }),
-          el("span", { text: `✨ 总脚本自动分段 (${state.plan.shots.length}段 · ${masterLen}字)` }),
+          el("span", { text: t("lbl_master_hdr", { n: state.plan.shots.length, chars: masterLen }) }),
         ]),
         el("div", { class: "sv-row" }, [
-          el("span", { style: { fontWeight: "normal", fontSize: "11px" }, text: "⏱默认时长:" }),
+          el("span", { style: { fontWeight: "normal", fontSize: "11px" }, text: t("lbl_default_dur") }),
           defDurInp,
           el("label", { class: "sv-row", style: { gap: "4px", fontWeight: "normal", cursor: "pointer" } }, [
             el("input", { type: "checkbox", checked: state.plan.auto_sync_master, onchange: (e) => { state.plan.auto_sync_master = e.target.checked; scheduleSync(); } }),
-            el("span", { text: "实时分段" }),
+            el("span", { text: t("lbl_live_split") }),
           ]),
           el("button", {
             class: "sv-btn act",
             text: t("btn_focus_edit"),
             onclick: () => openFocusPromptModal({
-              title: "✨ 总脚本大框精编 (支持 &时长& / @cut@ / @continue@ / ===)",
+              title: t("focus_title_master"),
               value: state.plan.master_script_text,
               placeholder: masterTa.placeholder,
-              chips: ["===\n& 8 &\n@continue@\n", "===\n& 8 &\n@cut@\n", "@type=文戏\n", "<Picture 1>", "<Picture 2>", "<Picture 3>"],
+              chips: ["===\n& 8 &\n@continue@\n", "===\n& 8 &\n@cut@\n", `${t("tag_type_drama")}\n`, "<Picture 1>", "<Picture 2>", "<Picture 3>"],
               el,
               t,
               onSave: (val) => {
@@ -1284,26 +1285,26 @@ function attachPanelController(node) {
             }),
           }),
           el("button", {
-            class: "sv-btn pri", text: "⚡ 立即自动分段",
+            class: "sv-btn pri", text: t("btn_split_now"),
             onclick: () => {
               state.plan.master_script_text = masterTa.value;
               setW("script_text", masterTa.value);
-              if (applyMasterSplit(true)) { scheduleSync(true); renderFilmstrip(); renderShotEditor(); showToast(`已切分为 ${state.plan.shots.length} 段`); }
+              if (applyMasterSplit(true)) { scheduleSync(true); renderFilmstrip(); renderShotEditor(); showToast(t("toast_split_ok", { n: state.plan.shots.length })); }
             },
           }),
           el("button", {
-            class: "sv-btn", text: "🔄 汇总",
-            title: "把下方分段重新汇总回 & 时长 & + @cut@/@continue@ + === 格式",
+            class: "sv-btn", text: t("btn_merge_back"),
+            title: t("title_merge_back"),
             onclick: () => {
               masterTa.value = composeMasterFromShots();
               state.masterExpanded = true;
               scheduleSync(true);
               renderBody();
-              showToast("已按 & 时长 & + @cut@/@continue@ + === 汇总到总脚本框");
+              showToast(t("toast_merged_back"));
             },
           }),
           el("button", {
-            class: "sv-btn", text: "📤 后端解析",
+            class: "sv-btn", text: t("btn_backend_parse"),
             onclick: async () => {
               try {
                 const r = await api.fetchApi("/shotvault/parse-preview", {
@@ -1321,44 +1322,44 @@ function attachPanelController(node) {
                     ...(state.plan.shots[i] || {}), ...x,
                     ref_slots: normSlots9(x.ref_slots, state.plan.shots[i]?.ref_slots || x.ref_images),
                   }));
-                  scheduleSync(true); renderFilmstrip(); renderShotEditor(); showToast(`后端解析 ${d.shots.length} 段`);
+                  scheduleSync(true); renderFilmstrip(); renderShotEditor(); showToast(t("toast_backend_parsed", { n: d.shots.length }));
                 }
-              } catch (err) { showToast(`解析失败: ${err.message}`); }
+              } catch (err) { showToast(t("toast_parse_failed", { msg: err.message })); }
             },
           }),
         ]),
       ]),
       state.masterExpanded ? masterWrap : null,
-      state.masterExpanded ? el("div", { class: "sv-row" }, [el("span", { text: "公共画风词:" }), commonInp]) : null,
+      state.masterExpanded ? el("div", { class: "sv-row" }, [el("span", { text: t("lbl_common_prompt") }), commonInp]) : null,
     );
 
     const stripBox = el("div", { class: "sv-box" });
     stripBox.append(
       el("div", { class: "sv-box-hdr" }, [
-        el("span", { text: "🎞 分镜条带 (点击卡片编辑；武戏/文戏与9图完全独立或一键顺延)" }),
+        el("span", { text: t("lbl_filmstrip_hdr") }),
         el("div", { class: "sv-row" }, [
           el("button", {
             class: "sv-btn pri",
-            text: "🔗 全片无缝续接(除首镜)",
-            title: "一键将第 2..N 段全部设为无缝续接 (hard_cut=false)，防止误开硬切断开上下文",
+            text: t("btn_all_continue"),
+            title: t("title_all_continue"),
             onclick: () => {
               state.plan.shots.forEach((sh, k) => {
                 sh.hard_cut = k === 0 ? !Boolean(state.plan.seed_video_path) : false;
               });
               scheduleSync(true); renderFilmstrip(); renderShotEditor(); renderHeader();
-              showToast(`已将第 2~${state.plan.shots.length} 段全部设为无缝续接`);
+              showToast(t("toast_all_continue", { n: state.plan.shots.length }));
             },
           }),
           el("select", {
             class: "sv-sel",
-            style: { width: "78px" },
-            title: "周期插 @cut@ 间隔段数（双机位数字人推荐 3~4 段清零一次画质）",
+            style: { width: "86px" },
+            title: t("title_periodic_n"),
             onchange: (e) => { state.periodicCutN = Math.max(2, Number(e.target.value) || 4); },
-          }, [3, 4, 5].map((n) => el("option", { value: String(n), selected: Number(state.periodicCutN) === n, text: `每${n}段` }))),
+          }, [3, 4, 5].map((n) => el("option", { value: String(n), selected: Number(state.periodicCutN) === n, text: t("opt_every_n", { n }) }))),
           el("button", {
             class: "sv-btn act",
             text: t("btn_periodic_cut"),
-            title: "仅修改切镜标记 (hard_cut)，在第 1+N、1+2N… 段插入 @cut@ 清零彩噪累积，不动提示词与9图",
+            title: t("title_periodic_cut"),
             onclick: () => {
               const step = Math.max(2, Number(state.periodicCutN) || 4);
               const cutNums = [];
@@ -1373,11 +1374,11 @@ function attachPanelController(node) {
                 }
               });
               scheduleSync(true); renderFilmstrip(); renderShotEditor(); renderHeader();
-              showToast(cutNums.length ? `已在 ${cutNums.join(", ")} 插入 @cut@ 周期清零` : `当前总段数 <= ${step}，无需插入周期切镜`);
+              showToast(cutNums.length ? t("toast_periodic_inserted", { list: cutNums.join(", ") }) : t("toast_periodic_none", { n: step }));
             },
           }),
           el("button", {
-            class: "sv-btn ok", text: "+ 新增片段",
+            class: "sv-btn ok", text: t("btn_add_shot"),
             onclick: () => {
               state.plan.shots.push({
                 shot_index: state.plan.shots.length + 1, duration_sec: Number(state.plan.default_duration_sec || 5.0), shot_type: 1, hard_cut: false,
@@ -1389,7 +1390,7 @@ function attachPanelController(node) {
             },
           }),
           el("button", {
-            class: "sv-btn act", text: "⎘ 复制当前段",
+            class: "sv-btn act", text: t("btn_dup_shot"),
             onclick: () => {
               const cur = state.plan.shots[state.sel];
               if (!cur) return;
@@ -1401,7 +1402,7 @@ function attachPanelController(node) {
             },
           }),
           el("button", {
-            class: "sv-btn", text: "◀前移",
+            class: "sv-btn", text: t("btn_move_prev"),
             onclick: () => {
               if (state.sel <= 0) return;
               const tmp = state.plan.shots[state.sel - 1];
@@ -1412,7 +1413,7 @@ function attachPanelController(node) {
             },
           }),
           el("button", {
-            class: "sv-btn", text: "▶后移",
+            class: "sv-btn", text: t("btn_move_next"),
             onclick: () => {
               if (state.sel >= state.plan.shots.length - 1) return;
               const tmp = state.plan.shots[state.sel + 1];
@@ -1423,9 +1424,9 @@ function attachPanelController(node) {
             },
           }),
           el("button", {
-            class: "sv-btn dng", text: "🗑 删除当前段",
+            class: "sv-btn dng", text: t("btn_del_shot"),
             onclick: () => {
-              if (state.plan.shots.length <= 1) return showToast("至少保留 1 个镜头");
+              if (state.plan.shots.length <= 1) return showToast(t("toast_keep_one"));
               state.plan.shots.splice(state.sel, 1);
               state.sel = Math.max(0, Math.min(state.sel, state.plan.shots.length - 1));
               scheduleSync(true); renderFilmstrip(); renderShotEditor(); patchFooter();
@@ -1633,7 +1634,6 @@ function attachPanelController(node) {
         text: `${srOn ? "✨" : ""}#${i + 1}`,
         onclick: () => {
           state.sel = i;
-          if (rl.enabled) { rl.shot_index = i + 1; scheduleSync(true); renderHeader(); }
           renderBody();
         },
       });
@@ -1921,10 +1921,10 @@ function attachPanelController(node) {
       const szText = info ? ` · ${fmtBytes(info.bytes)}` : "";
       const protReasons = info?.protected_reasons || (isAct ? ["active"] : (isLocked ? ["locked"] : []));
       const bridgeBadge = Number(tk.tail_bridge_frames || 0) > 0
-        ? el("span", { class: "sv-badge", style: { background: "#143045", color: "#9ee8ff", borderColor: "#2d7c94" }, text: `🔗双头${tk.tail_bridge_frames}f` })
+        ? el("span", { class: "sv-badge", style: { background: "#143045", color: "#9ee8ff", borderColor: "#2d7c94" }, text: t("badge_bidir", { f: tk.tail_bridge_frames }) })
         : null;
       const pendingBadge = (isAct && outdatedSet.has(shotNum))
-        ? el("span", { class: "sv-badge", style: { background: "#472b11", color: "#ffd7a1", borderColor: "#c67a22" }, text: "待合入" })
+        ? el("span", { class: "sv-badge", style: { background: "#472b11", color: "#ffd7a1", borderColor: "#c67a22" }, text: t("badge_pending_merge") })
         : null;
       return el("div", { class: `sv-chk-row ${isAct ? "active" : ""}` }, [
         el("label", { class: "sv-row", style: { gap: "5px", cursor: deletable ? "pointer" : "default", flex: "1", minWidth: "0" } }, [
@@ -1987,7 +1987,7 @@ function attachPanelController(node) {
         el("div", { class: "sv-row" }, [
           el("button", {
             class: `sv-btn ${isLocked ? "ok" : ""}`,
-            title: "保护本镜不因上游改动而标红 STALE（不影响单段重抽）",
+            title: t("title_protect_shot"),
             text: isLocked ? t("btn_locked_shot") : t("btn_lock_shot"),
             onclick: async () => {
               try {
@@ -2028,14 +2028,44 @@ function attachPanelController(node) {
       ...takeCards,
     ]);
 
-    const rerollCard = el("div", { class: `sv-box ${rl.enabled ? "reroll-on" : ""}` }, [
+    const isThisShotLocked = Boolean(rl.enabled && Number(rl.shot_index) === shotNum);
+    const isOtherShotLocked = Boolean(rl.enabled && Number(rl.shot_index) !== shotNum);
+    const otherLockBanner = isOtherShotLocked
+      ? el("div", { class: "sv-outdated-banner", style: { display: "flex", alignItems: "center", justifyContent: "space-between", gap: "6px", flexWrap: "wrap" } }, [
+          el("span", { text: t("rl_other_locked_warn", { locked: rl.shot_index, cur: shotNum }) }),
+          el("div", { class: "sv-row" }, [
+            el("button", {
+              class: "sv-btn warn xs",
+              text: t("rl_switch_lock_btn", { cur: shotNum }),
+              onclick: () => { rl.enabled = true; rl.shot_index = shotNum; scheduleSync(true); renderAll(); },
+            }),
+            el("button", {
+              class: "sv-btn xs",
+              text: t("rl_unlock_btn"),
+              onclick: () => { rl.enabled = false; scheduleSync(true); renderAll(); },
+            }),
+          ]),
+        ])
+      : null;
+
+    const tailOpts = hasNextRendered
+      ? [
+          [0, t("rl_tail_off")],
+          [1, t("rl_tail_1")],
+          [5, t("rl_tail_5")],
+          [22, t("rl_tail_22")],
+        ]
+      : [[0, t("rl_tail_disabled_opt")]];
+    const displayedTailVal = hasNextRendered ? Number(rl.tail_bridge_frames || 0) : 0;
+
+    const rerollCard = el("div", { class: `sv-box ${isThisShotLocked ? "reroll-on" : ""}` }, [
       el("div", { class: "sv-box-hdr" }, [
         el("span", { text: t("t2_reroll_hdr") }),
         el("button", {
           class: "sv-btn act xs",
           text: t("btn_focus_edit"),
           onclick: () => openFocusPromptModal({
-            title: `🎯 镜头 #${shotNum} 单段重抽微调提示词`,
+            title: t("focus_title_reroll", { i: shotNum }),
             value: rl.prompt_override || "",
             placeholder: t("rl_prompt_ph"),
             chips: Array.from({ length: 9 }, (_, k) => `<Picture ${k + 1}>`),
@@ -2050,10 +2080,20 @@ function attachPanelController(node) {
           }),
         }),
       ]),
+      otherLockBanner,
       el("label", { class: "sv-row", style: { gap: "6px", cursor: "pointer" } }, [
         el("input", {
-          type: "checkbox", checked: Boolean(rl.enabled),
-          onchange: (e) => { rl.enabled = e.target.checked; rl.shot_index = shotNum; scheduleSync(true); renderAll(); },
+          type: "checkbox", checked: isThisShotLocked,
+          onchange: (e) => {
+            if (e.target.checked) {
+              rl.enabled = true;
+              rl.shot_index = shotNum;
+            } else {
+              rl.enabled = false;
+            }
+            scheduleSync(true);
+            renderAll();
+          },
         }),
         el("strong", { text: t("rl_enable", { i: shotNum }) }),
       ]),
@@ -2069,16 +2109,11 @@ function attachPanelController(node) {
           class: "sv-sel",
           disabled: !hasNextRendered,
           onchange: (e) => { rl.tail_bridge_frames = Number(e.target.value || 0); scheduleSync(true); renderBody(); },
-        }, [
-          [0, t("rl_tail_off")],
-          [1, t("rl_tail_1")],
-          [5, t("rl_tail_5")],
-          [22, t("rl_tail_22")],
-        ].map(([v, lbl]) => el("option", { value: String(v), selected: Number(rl.tail_bridge_frames || 0) === v, text: lbl }))),
+        }, tailOpts.map(([v, lbl]) => el("option", { value: String(v), selected: displayedTailVal === v, text: lbl }))),
         (hasNextRendered && Number(rl.tail_bridge_frames) === 22)
           ? el("select", {
               class: "sv-sel",
-              title: "22帧尾锚材质（接缝第0帧始终纯净无彩噪）",
+              title: t("title_tail_noise"),
               onchange: (e) => { rl.tail_bridge_noise = e.target.value; scheduleSync(true); },
             }, [
               ["clean", t("rl_tail_clean")],
@@ -2095,7 +2130,7 @@ function attachPanelController(node) {
         }),
         el("span", { text: t("rl_auto_asm") }),
       ]),
-      rl.enabled
+      isThisShotLocked
         ? el("div", { class: "sv-guide-strip", text: (rl.auto_assemble_after_reroll !== false) ? t("rl_guide_auto", { i: shotNum }) : t("rl_guide_manual", { i: shotNum }) })
         : null,
     ]);
@@ -2112,26 +2147,26 @@ function attachPanelController(node) {
     const left = el("div", { class: "sv-box" }, [
       el("div", { class: "sv-box-hdr" }, [
         el("span", { text: t("t3_left_hdr") }),
-        p.seed_video_path ? el("button", { class: "sv-btn dng", text: "清除 Shot 0", onclick: () => { p.seed_video_path = ""; scheduleSync(true); renderBody(); } }) : null,
+        p.seed_video_path ? el("button", { class: "sv-btn dng", text: t("btn_clear_shot0"), onclick: () => { p.seed_video_path = ""; scheduleSync(true); renderBody(); } }) : null,
       ]),
       el("div", { class: "sv-row" }, [
-        el("button", { class: "sv-btn pri", text: "📤 上传 Shot 0 视频", onclick: () => pickLocalFile("video/*", async (f) => { const r = await uploadMediaFile(f, "shotvault/seed"); p.seed_video_path = r.rel_path; scheduleSync(true); renderBody(); showToast("Shot 0 已导入"); }) }),
-        el("span", { text: "保留前N秒(0=不裁直接续拍末尾):" }),
+        el("button", { class: "sv-btn pri", text: t("btn_upload_shot0"), onclick: () => pickLocalFile("video/*", async (f) => { const r = await uploadMediaFile(f, "shotvault/seed"); p.seed_video_path = r.rel_path; scheduleSync(true); renderBody(); showToast(t("toast_shot0_imported")); }) }),
+        el("span", { text: t("lbl_seed_trim") }),
         el("input", { class: "sv-inp", type: "number", step: "0.1", min: "0", value: String(p.seed_trim_end_sec || 0), style: { width: "70px" }, oninput: (e) => { p.seed_trim_end_sec = Math.max(0, parseFloat(e.target.value) || 0); scheduleSync(); } }),
       ]),
       p.seed_video_path
         ? el("video", { controls: true, src: mediaUrl(p.seed_video_path), style: { width: "100%", maxHeight: "230px", borderRadius: "6px", background: "#000" } })
-        : el("div", { class: "sv-thumb", style: { height: "160px" }, text: "未设置 Shot 0；上传后镜头 #1 将从该视频末尾 22/39 帧无缝接续" }),
+        : el("div", { class: "sv-thumb", style: { height: "160px" }, text: t("ph_shot0_empty") }),
     ]);
 
     const right = el("div", { class: "sv-box" }, [
       el("div", { class: "sv-box-hdr" }, [
         el("span", { text: t("t3_right_hdr") }),
         el("button", {
-          class: "sv-btn act", text: "📋 复制全局9图 -> 所有分段",
+          class: "sv-btn act", text: t("btn_copy_global_refs"),
           onclick: () => {
             p.shots.forEach((s) => { s.ref_slots = [...p.global_ref_slots]; s.ref_images = s.ref_slots.filter(Boolean); });
-            scheduleSync(true); showToast("已把全局 9 图写入所有分段");
+            scheduleSync(true); showToast(t("toast_global_refs_copied"));
           },
         }),
       ]),
@@ -2141,18 +2176,18 @@ function attachPanelController(node) {
           class: "sv-btn",
           disabled: isAudioMode(),
           style: isAudioMode() ? { opacity: "0.5", cursor: "not-allowed" } : {},
-          text: isAudioMode() ? "🔇 全局音色参考 (音频驱动下自动屏蔽)" : `🔊 全局音色参考 (${p.global_ref_audios.length}/3)`,
+          text: isAudioMode() ? t("btn_global_audio_muted") : t("btn_global_audio", { n: p.global_ref_audios.length }),
           onclick: () => {
             if (isAudioMode()) return;
             pickLocalFile("audio/*", async (f) => { const r = await uploadMediaFile(f, "shotvault/global"); p.global_ref_audios = [...p.global_ref_audios, r.rel_path].slice(-3); scheduleSync(); renderBody(); });
           },
         }),
-        isAudioMode() ? el("span", { class: "sv-link-lbl", text: "MV驱动下已自动屏蔽" }) : null,
-        p.global_ref_audios.length ? el("button", { class: "sv-btn dng", text: "×清空音色", onclick: () => { p.global_ref_audios = []; scheduleSync(); renderBody(); } }) : null,
+        isAudioMode() ? el("span", { class: "sv-link-lbl", text: t("lbl_mv_muted") }) : null,
+        p.global_ref_audios.length ? el("button", { class: "sv-btn dng", text: t("btn_clear_global_voice"), onclick: () => { p.global_ref_audios = []; scheduleSync(); renderBody(); } }) : null,
       ]),
       p.global_ref_audios.length
         ? el("div", { class: "sv-chips" }, p.global_ref_audios.map((ap, ai) => el("span", { class: "sv-chip" }, [
-            `全局音色${ai + 1}: ${String(ap || "").split("/").pop()} `,
+            t("lbl_global_voice_item", { i: ai + 1, name: String(ap || "").split("/").pop() }),
             el("button", { class: "sv-btn dng", style: { padding: "0 4px", fontSize: "10px" }, text: "×", onclick: () => { p.global_ref_audios.splice(ai, 1); scheduleSync(); renderBody(); } }),
           ])))
         : null,
@@ -2165,7 +2200,7 @@ function attachPanelController(node) {
     const rows = [22, 39, 56].map((val) => {
       const m = computeGear(val, true);
       return el("tr", { style: val === g ? { background: "#1b2742", fontWeight: "700" } : {} }, [
-        el("td", { text: `${val} 帧${val === g ? " (当前)" : ""}` }),
+        el("td", { text: t("tbl_gear_cell", { v: val, cur: val === g ? t("tbl_gear_cur") : "" }) }),
         el("td", { text: `${m.overlap}f` }), el("td", { text: `${m.trim}f` }), el("td", { text: `${m.taperTail}f` }),
         el("td", { text: `${m.ramp}f` }), el("td", { text: `${m.audioGuide}f` }), el("td", { text: `${m.feather} tick` }),
         el("td", { text: m.pair }), el("td", { text: `forLoop -> clean_tail[-${val}f]` }),
@@ -2174,27 +2209,27 @@ function attachPanelController(node) {
     const gearBox = el("div", { class: "sv-box" }, [
       el("div", { class: "sv-box-hdr" }, [
         el("span", { text: t("t4_gear_hdr") }),
-        isLinked("context_frames") ? el("span", { class: "sv-link-lbl", text: "🔗 context_frames 由连线控制" }) : null,
+        isLinked("context_frames") ? el("span", { class: "sv-link-lbl", text: t("lbl_ctx_linked") }) : null,
       ]),
       el("table", { class: "sv-tbl" }, [
-        el("thead", {}, [el("tr", {}, ["档位", "overlap", "trim_head", "taper_tail(#749)", "taper_ramp", "audio_guide", "feather_ticks", "H3网格 (17k+5)", "forLoop传递"].map((h) => el("th", { text: h })))]),
+        el("thead", {}, [el("tr", {}, [t("tbl_th_gear"), "overlap", "trim_head", "taper_tail(#749)", "taper_ramp", "audio_guide", "feather_ticks", t("tbl_th_grid"), t("tbl_th_forloop")].map((h) => el("th", { text: h })))]),
         el("tbody", {}, rows),
       ]),
     ]);
 
     const cfgFields = [
-      ["aspect_ratio", "画幅比例", "select", ["16:9 (1344x768)", "9:16 (768x1344)", "4:3 (1152x864)", "3:4 (864x1152)", "1:1 (1024x1024)", "2.39:1 (1536x640)"]],
-      ["megapixels", "目标像素(MP)", "float", 1.0],
-      ["fps", "帧率 FPS", "int", 24],
-      ["duration_mode", "时长计算模式", "select", ["zero_tail_trim", "cumulative_cursor", "net_preserve"]],
-      ["script_format", "脚本格式", "select", ["auto", "1114_markdown", "kkdemabu_dual_jsonc", "cinema_pack_json"]],
-      ["audio_drive_mode", "音频驱动模式", "select", ["none", "per_shot_audio_dir", "master_song_slice"]],
-      ["snap_cuts_to_beat", "切点吸附节拍", "bool", false],
-      ["auto_split_turnaround", "四宫格自动裁图", "bool", false],
+      ["aspect_ratio", t("cfg_aspect_ratio"), "select", ["16:9 (1344x768)", "9:16 (768x1344)", "4:3 (1152x864)", "3:4 (864x1152)", "1:1 (1024x1024)", "2.39:1 (1536x640)"]],
+      ["megapixels", t("cfg_megapixels"), "float", 1.0],
+      ["fps", t("cfg_fps"), "int", 24],
+      ["duration_mode", t("cfg_duration_mode"), "select", ["zero_tail_trim", "cumulative_cursor", "net_preserve"]],
+      ["script_format", t("cfg_script_format"), "select", ["auto", "1114_markdown", "kkdemabu_dual_jsonc", "cinema_pack_json"]],
+      ["audio_drive_mode", t("cfg_audio_drive_mode"), "select", ["none", "per_shot_audio_dir", "master_song_slice"]],
+      ["snap_cuts_to_beat", t("cfg_snap_cuts"), "bool", false],
+      ["auto_split_turnaround", t("cfg_auto_split"), "bool", false],
     ];
     const grid4 = el("div", { class: "sv-grid4" }, cfgFields.map(([k, lbl, kind, fb]) => {
       const wrap = el("div", { class: "sv-box", style: { padding: "6px" } }, [el("span", { style: { fontSize: "11px", color: "#9da6bc" }, text: lbl })]);
-      if (isLinked(k)) { wrap.appendChild(el("span", { class: "sv-link-lbl", text: "🔗 由连线控制" })); return wrap; }
+      if (isLinked(k)) { wrap.appendChild(el("span", { class: "sv-link-lbl", text: t("lbl_linked_ctrl") })); return wrap; }
       if (kind === "select") {
         const opts = getOpts(k, fb);
         const cur = k === "audio_drive_mode" ? String(state.plan.audio_drive_mode || getW(k, opts[0])) : String(getW(k, opts[0]));
@@ -2221,17 +2256,17 @@ function attachPanelController(node) {
     }));
 
     const advFields = [
-      ["audio_per_shot_dir", "分段驱动音频目录 (audio_per_shot_dir)", "text", ""],
-      ["assets_root_dir", "角色/场景四宫格素材根目录 (assets_root_dir)", "text", ""],
+      ["audio_per_shot_dir", t("cfg_audio_dir"), "text", ""],
+      ["assets_root_dir", t("cfg_assets_dir"), "text", ""],
     ];
     const advTa = el("textarea", {
       class: "sv-ta", rows: 3, style: { width: "100%", resize: "vertical" },
-      placeholder: "V17 阶段三结构化 JSONC 脚本 (stage3_json_text，非 V17 模式留空)...",
+      placeholder: t("ph_stage3_json"),
       oninput: (e) => { setW("stage3_json_text", e.target.value); scheduleSync(); },
     });
     advTa.value = String(getW("stage3_json_text", "") || "");
     const advDetails = el("details", { class: "sv-adv" }, [
-      el("summary", { text: "🗂 高级目录与 V17 双 JSONC 输入（audio_per_shot_dir / assets_root_dir / stage3_json_text）" }),
+      el("summary", { text: t("adv_v17_summary") }),
       el("div", { class: "sv-grid2", style: { marginTop: "6px" } }, advFields.map(([k, lbl, _, fb]) => el("div", { class: "sv-box", style: { padding: "6px" } }, [
         el("span", { style: { fontSize: "11px", color: "#9da6bc" }, text: lbl }),
         el("input", { class: "sv-inp", value: String(getW(k, fb) || ""), oninput: (e) => { setW(k, e.target.value); scheduleSync(); } }),
@@ -2243,11 +2278,11 @@ function attachPanelController(node) {
     const { loads, dispatches } = findDownstreamVaultNodes();
     const chkBox = el("div", { class: "sv-box" }, [
       el("div", { class: "sv-box-hdr" }, [
-        el("span", { text: `🩺 预检 Checks (画布下游: LoopDispatch×${dispatches.length}, ShotVaultLoad×${loads.length})` }),
+        el("span", { text: t("chk_hdr", { d: dispatches.length, l: loads.length }) }),
       ]),
       ...(issues.length ? issues.map((it) => el("div", { class: "sv-row", style: { justifyContent: "space-between", background: "#14151b", padding: "4px 8px", borderRadius: "6px" } }, [
         el("span", { style: { color: it.lv === "err" ? "#ff9ca8" : "#ffd08c" }, text: `${it.lv === "err" ? "❌" : "⚠"} ${it.msg}` }),
-        it.shot >= 0 ? el("button", { class: "sv-btn", text: `跳转 #${it.shot + 1}`, onclick: () => { state.sel = it.shot; state.tab = "edit"; renderTabs(); renderBody(); } }) : null,
+        it.shot >= 0 ? el("button", { class: "sv-btn", text: t("btn_jump_shot", { i: it.shot + 1 }), onclick: () => { state.sel = it.shot; state.tab = "edit"; renderTabs(); renderBody(); } }) : null,
       ])) : [el("span", { style: { color: "#7fe0b6" }, text: t("t4_chk_ok") })]),
     ]);
     const adCfg = state.plan.anti_degradation || (state.plan.anti_degradation = { mode: "standard", noise_keep_ratio: 0.40, static_bg_pull: 0.20 });
@@ -2286,7 +2321,7 @@ function attachPanelController(node) {
     const adAdv = el("details", { class: "sv-adv", style: { marginTop: "6px" } }, [
       el("summary", { style: { fontSize: "11px" }, text: t("ad_adv") }),
       el("div", { class: "sv-row", style: { marginTop: "6px", gap: "12px" } }, [
-        el("span", { style: { fontSize: "11px", color: "#9da6bc" }, text: "彩噪保留比 λ (0.05~1.0, 0.40≈0.22α):" }),
+        el("span", { style: { fontSize: "11px", color: "#9da6bc" }, text: t("ad_lbl_noise") }),
         el("input", {
           class: "sv-inp",
           type: "number",
@@ -2300,7 +2335,7 @@ function attachPanelController(node) {
             if (Number.isFinite(v)) { adCfg.noise_keep_ratio = Math.max(0.05, Math.min(1.0, v)); scheduleSync(); }
           },
         }),
-        el("span", { style: { fontSize: "11px", color: "#9da6bc" }, text: "静景锚定回拉 β (0~0.35):" }),
+        el("span", { style: { fontSize: "11px", color: "#9da6bc" }, text: t("ad_lbl_bg_pull") }),
         el("input", {
           class: "sv-inp",
           type: "number",

@@ -1,10 +1,13 @@
-# ShotVault Window Guider (零劣化窗口引导)
+# ShotVault Window Guider · 零劣化窗口引导
 
-`ShotVaultWindowGuider` 融合单镜 `ContextWindows` 步内 $x_0$ 锚定、`1st+2nd (22+5)` 非对称引导、`keyframe_until_sigma` 低噪放锁，以及二采局部 `sigma` 音频重定基保护。
+**English** | Context-window & bidirectional continuation guider for 1st-pass and 2nd-pass MiniMax H3 sampling.
+- Shares cached head and tail latents across both passes for zero redundant VAE re-encoding.
+- Injects optional **Bidirectional Tail Keyframes (`1 / 5 / 22f`)** with optional `reverse_taper` mild chroma noise (`alpha = 0.0` strictly at seam frame `pos = 0`) and 32 kHz tail audio anchoring for `22f`.
+- Applies Fixed-Camera / Digital Human anti-degradation noise attenuation when configured in `ShotVaultPlan`.
 
-## 关键参数
-- **`pass_stage`**: 一采选 `single_or_1st`；二采精修选 `2nd_refine`。
-- **`window_mode`**: 当目标长度超过 `window_frames`（`192f ≈ 8s`）自动启用步内 $x_0$ 窗口锚定 + 末 2 token `_late_handover`；含 `<d>` 对白时会自动结合 `+trim_head_frames` 偏移后的时间段执行 DP 避让排窗。
-- **`audio_feather_ticks`**: 默认 `7`，可在节点上自由调节前序接续音频尾部的半余弦羽化长度（`0` 为硬接）。
-- **`rebase_2nd_pass_audio`**: 默认开启，当底层使用非原生缩放（`audio_scale == 1.0`）进行二采部分去噪重启时自动将音频流从视频时间轴重定基到 `shift=3.0` 音频时钟；原生 `ModelSamplingAV` 则自动跳过防双重缩放。
-- **单窗无负向条件**: 当 `negative` 未接且 `cfg=1.0` 时严格走原生 `Guider_Basic` 轻量路径，零 `None` 报错。
+---
+
+**简体中文** | 面向 MiniMax H3 一采/二采的上下文窗口与双向续接引导节点。
+- 一采/二采共享头尾潜变量缓存，零重复 VAE 编解码。
+- 支持 **双头桥接尾锚 (`1 / 5 / 22f`)** 注入、`22f` 可选反向渐进轻彩噪（接缝 `pos = 0` 处严格 `alpha = 0.0` 纯净无噪）及 32kHz 尾音锚定。
+- 响应分镜规划台的固定机位/数字人防劣化配置，自动调节彩噪强度与静态背景保护。

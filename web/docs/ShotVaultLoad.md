@@ -1,5 +1,9 @@
-# ShotVaultLoad [N2]
+# ShotVault Load · 选段/双尾与多模加载
 
-按序号、连续未完成游标或特定段号（`1` / `3-5` / `6,9` / `0` 重跑全片）加载当前镜的干净尾帧、`800-sample` 端对齐 `32kHz` 尾音、二采未裁尾裸 `.latent`、以及该镜专属的多模态参考图/视频/音频字典。
-- 新增 `reuse_seed_audio` 接口：直接从画布接入 `LoadVideo` 输出的图像与原声音频作为 `Shot 0` 无损续拍。
-- 仅输出 `10` 个紧凑端口；未配置角色参考图时 `asset_ref_1` / `asset_ref_2` 返回空值而非黑图。
+**English** | Loads archived shot context by cursor, shot list (`1`, `3-5`, `6,9`), or full reset (`0`).
+- Provides clean tail frames, 800-sample aligned 32 kHz tail audio, un-trimmed 2nd-pass latent tail, and per-shot multimodal reference assets for continuation or manual rerolls.
+
+---
+
+**简体中文** | 按游标、镜号列表（`1` / `3-5` / `6,9`）或全片重置（`0`）加载指定镜头的续接上下文。
+- 输出上一段干净尾帧、800-sample 对齐 32kHz 尾音、未裁尾二采潜变量及当前镜多模态参考素材。

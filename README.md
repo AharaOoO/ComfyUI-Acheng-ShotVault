@@ -9,7 +9,7 @@
 </p>
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Release](https://img.shields.io/badge/Release-v5.8.0-emerald.svg)](https://github.com/AharaOoO/ComfyUI-Universal-ShotVault/releases)
+[![Release](https://img.shields.io/badge/Release-v5.8.1-emerald.svg)](https://github.com/AharaOoO/ComfyUI-Universal-ShotVault/releases)
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-Custom%20Nodes-orange.svg)](https://github.com/comfyanonymous/ComfyUI)
 [![Python](https://img.shields.io/badge/Python-%E2%89%A53.10-3776AB.svg)](https://www.python.org/)
 

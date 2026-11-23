@@ -864,6 +864,7 @@ def compute_master_sync_status(
             "is_outdated": bool(rendered_indices),
             "outdated_shots": rendered_indices[:8],
             "outdated_reasons": ["尚未导出总成片"] if rendered_indices else [],
+            "outdated_reasons_en": ["Master video not exported yet"] if rendered_indices else [],
         }
 
     master_mtime = float(os.path.getmtime(target_mp4))
@@ -881,6 +882,7 @@ def compute_master_sync_status(
 
     outdated_shots: list[int] = []
     outdated_reasons: list[str] = []
+    outdated_reasons_en: list[str] = []
     m_shots = (manifest or {}).get("shots") if isinstance(manifest, dict) else None
 
     for idx in rendered_indices:
@@ -892,12 +894,15 @@ def compute_master_sync_status(
             if not isinstance(m_rec, dict):
                 outdated_shots.append(idx)
                 outdated_reasons.append(f"#{idx} ({act_tid} 未合入)")
+                outdated_reasons_en.append(f"#{idx} ({act_tid} not merged)")
             elif str(m_rec.get("take_id") or "") != act_tid:
                 outdated_shots.append(idx)
                 outdated_reasons.append(f"#{idx} (已换为 {act_tid})")
+                outdated_reasons_en.append(f"#{idx} (switched to {act_tid})")
             elif str(m_rec.get("seam_repair_sig") or "original") != cur_sr_sig:
                 outdated_shots.append(idx)
                 outdated_reasons.append(f"#{idx} (修复配置已变更)")
+                outdated_reasons_en.append(f"#{idx} (seam repair changed)")
         else:
             # Legacy project without sidecar manifest: compare active take file mtime & active seam repair toggle
             tmeta = (rec.get("takes") or {}).get(act_tid) or {}
@@ -909,9 +914,11 @@ def compute_master_sync_status(
             if vabs and os.path.isfile(vabs) and os.path.getmtime(vabs) > master_mtime + 1.0:
                 outdated_shots.append(idx)
                 outdated_reasons.append(f"#{idx} ({act_tid} 新于旧成片)")
+                outdated_reasons_en.append(f"#{idx} ({act_tid} newer than master)")
             elif cur_sr_sig != "original":
                 outdated_shots.append(idx)
                 outdated_reasons.append(f"#{idx} (已开启修复待合入)")
+                outdated_reasons_en.append(f"#{idx} (seam repair pending)")
 
     return {
         "has_master": True,
@@ -921,6 +928,7 @@ def compute_master_sync_status(
         "is_outdated": bool(outdated_shots),
         "outdated_shots": outdated_shots,
         "outdated_reasons": outdated_reasons,
+        "outdated_reasons_en": outdated_reasons_en,
     }
 
 

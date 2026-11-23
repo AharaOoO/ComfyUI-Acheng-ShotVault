@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-universal-shotvault"
 description = "Production-grade ComfyUI node suite for MiniMax H3 long-form multi-shot video planning, lossless continuation, bidirectional bridge single-shot reroll, seam repair, and manifest-verified master assembly."
-version = "5.8.0"
+version = "5.8.1"
 license = { text = "GPL-3.0-only" }
 requires-python = ">=3.10"
 authors = [

@@ -3,6 +3,8 @@
  * stale-shot policy control, live HTML5 playback, and safe MP4/FCPXML download.
  */
 
+import { getLang, pickOutdatedReasons } from "../i18n.js";
+
 export function renderExportModal({
   state,
   proj,
@@ -72,10 +74,11 @@ export function renderExportModal({
 
   const resData = state.lastExport && state.lastExport.ok ? state.lastExport : null;
   const stillOutdated = Boolean(syncStatus.is_outdated) && !resData;
+  const reasonSep = getLang() === "en" ? ", " : "、";
   const outdatedBanner = stillOutdated
     ? el("div", { class: "sv-outdated-banner" }, [
         syncStatus.has_master
-          ? t("exp_outdated_banner", { reasons: (syncStatus.outdated_reasons || []).slice(0, 6).join("、") })
+          ? t("exp_outdated_banner", { reasons: pickOutdatedReasons(syncStatus).slice(0, 6).join(reasonSep) })
           : t("exp_no_master_banner"),
       ])
     : (resData
@@ -88,14 +91,14 @@ export function renderExportModal({
 
   const summaryBox = el("div", { class: "sv-box", style: { background: "#14161e", gap: "5px" } }, [
     el("div", { class: "sv-row", style: { justifyContent: "space-between" } }, [
-      el("span", { style: { fontWeight: "700", color: "#dde4f7" }, text: `📦 ${proj} · 已渲染 ${renderedShots.length}/${totalPlanned} 镜` }),
+      el("span", { style: { fontWeight: "700", color: "#dde4f7" }, text: t("exp_rendered_summary", { proj, done: renderedShots.length, total: totalPlanned }) }),
       staleShots.length
-        ? el("span", { class: "sv-badge", style: { background: "#4a3312", color: "#ffd27d", borderColor: "#a67521" }, text: `⚠ 标红 STALE: ${staleShots.map((x) => `#${x.shot_index}`).join(", ")}` })
-        : el("span", { class: "sv-badge", style: { background: "#143d2c", color: "#8ff0c2", borderColor: "#25875f" }, text: "✅ 全片绿灯" }),
+        ? el("span", { class: "sv-badge", style: { background: "#4a3312", color: "#ffd27d", borderColor: "#a67521" }, text: t("exp_stale_badge", { list: staleShots.map((x) => `#${x.shot_index}`).join(", ") }) })
+        : el("span", { class: "sv-badge", style: { background: "#143d2c", color: "#8ff0c2", borderColor: "#25875f" }, text: t("exp_all_green") }),
     ]),
     el("div", { style: { fontSize: "11px", color: activeRepairs.length ? "#8ff0c2" : "#9da6bc" }, text: activeRepairs.length ? `✨ ${t("exp_with_repairs", { n: activeRepairs.length, list: repairListStr })}` : `🎞 ${t("exp_no_repairs")}` }),
     unrenderedShots.length
-      ? el("div", { style: { fontSize: "11px", color: "#ff9ca8" }, text: `未渲染镜头：${unrenderedShots.map((x) => `#${x.shot_index}`).join(", ")}（合并时将自动跳过未出片镜头）` })
+      ? el("div", { style: { fontSize: "11px", color: "#ff9ca8" }, text: t("exp_unrendered_note", { list: unrenderedShots.map((x) => `#${x.shot_index}`).join(", ") }) })
       : null,
     existingMasters.length
       ? el("div", { style: { fontSize: "11px", color: "#8c95ab" }, text: t("exp_existing", { name: existingMasters[0].name, sz: fmtBytes(existingMasters[0].bytes) }) })
@@ -159,8 +162,8 @@ export function renderExportModal({
           el("span", {
             style: { fontWeight: "700", fontSize: "11.5px", color: isStaleDiskPreview ? "#ffd08c" : "#8ff0c2" },
             text: resData
-              ? `✅ 刚刚导出：${previewRel} (${fmtBytes(resData.file_bytes || 0)} · ${Number(resData.report?.expected_duration_sec || 0).toFixed(1)}s)`
-              : (isStaleDiskPreview ? `⚠ 磁盘旧成片（未含最新重抽/修复）：${previewRel}` : `🎞 当前磁盘成片：${previewRel}`),
+              ? t("exp_just_exported", { rel: previewRel, sz: fmtBytes(resData.file_bytes || 0), dur: Number(resData.report?.expected_duration_sec || 0).toFixed(1) })
+              : (isStaleDiskPreview ? t("exp_disk_stale", { rel: previewRel }) : t("exp_disk_current", { rel: previewRel })),
           }),
           el("div", { class: "sv-row" }, [
             previewAbs

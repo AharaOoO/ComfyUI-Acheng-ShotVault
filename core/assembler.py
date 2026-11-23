@@ -184,6 +184,7 @@ def assemble_master(
             "unrendered_shots": unrendered,
             "stale_shots": stale,
             "message": "自动等待剩余或标红镜头跑完后再单遍封装总成片。",
+            "message_en": "Deferred master assembly until remaining/STALE shots finish.",
         }
         return "", "", json.dumps(deferred, ensure_ascii=False, indent=2)
 

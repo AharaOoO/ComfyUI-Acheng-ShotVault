@@ -1,10 +1,11 @@
-# ShotVault Save (双轨隔离归档)
+# ShotVault Save · 分镜入库与自动重合
 
-`ShotVaultSave` 将成片与接续上下文物理隔离落盘，并在队列头安全推进下一镜。
+**English** | Atomically archives each rendered shot take (`shots/shot_xxxx_take_yyy.mp4`), thumbnail, 3s seam preview, and `.h3ctx.safetensors` continuation context.
+- Records `bridged_next_take_id` after a bidirectional bridge reroll so the downstream shot automatically stays green `VALID`.
+- When `auto_assemble_after_reroll` is enabled during a single-shot reroll, immediately refreshes `master.mp4`, `.manifest.json`, and `FCPXML`.
 
-## 关键端口与防踩坑指南
-- **`final_images` vs `clean_images` 物理隔离**：
-  - 将超分 / LUT / 锐化之后的画面接 `final_images`（写入成片 `shots/*.mp4`）。
-  - 将后处理之前的 `[N4] ShotVaultSeamTrim.images` 单独接入 `clean_images`（写入 `_vault/*.h3ctx.safetensors`）。如此哪怕 2x 超分也不会污染下一镜底噪！
-- **`sampled_latent`**: 接入二采采样器输出，自动无损抽出末 `12` 步裸 AV 尾潜变量。
-- **`auto_queue_next`**: 开启时按剩余待跑镜从服务端 **`PromptServer` 队列头** 自动续排；点击 ComfyUI `Cancel` 或报错瞬间熔断。
+---
+
+**简体中文** | 将每镜成片（`shots/shot_xxxx_take_yyy.mp4`）、缩略图、3 秒接缝预览与 `.h3ctx.safetensors` 上下文原子落盘归档。
+- 双向桥接重抽完成后自动记录 `bridged_next_take_id`，使下游已渲染镜头直接保持绿标 `VALID`。
+- 单段定向重抽开启 `auto_assemble_after_reroll` 时，入库后自动刷新 `master.mp4`、`.manifest.json` 校验清单与 `FCPXML`。
