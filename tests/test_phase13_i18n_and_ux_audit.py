@@ -128,6 +128,19 @@ class TestPhase13I18nAndUxAudit(unittest.TestCase):
         self.assertIn("rl_other_locked_warn", dp)
         self.assertIn("rl_switch_lock_btn", dp)
         self.assertIn("rl_tail_disabled_opt", dp)
+        self.assertIn("repair_exp_note", dp)
+
+    def test_acheng_shotvault_branding_category_and_pyproject(self):
+        from sv_p13_pkg.nodes import NODE_CLASS_MAPPINGS  # type: ignore
+
+        for name, cls in NODE_CLASS_MAPPINGS.items():
+            self.assertTrue(
+                str(getattr(cls, "CATEGORY", "")).startswith("Acheng-ShotVault/"),
+                f"{name}.CATEGORY must start with 'Acheng-ShotVault/', got {getattr(cls, 'CATEGORY', None)!r}",
+            )
+        pyproj = open(os.path.join(REPO_ROOT, "pyproject.toml"), "r", encoding="utf-8").read()
+        self.assertIn('name = "comfyui-acheng-shotvault"', pyproj)
+        self.assertIn('DisplayName = "ComfyUI-Acheng-ShotVault"', pyproj)
 
     def test_backend_bilingual_contracts_and_clean_defaults(self):
         # 1. ShotVaultPlan clean neutral defaults (no hardcoded Chinese prompt for fresh nodes)

@@ -1,4 +1,4 @@
-"""ComfyUI-Universal-ShotVault v5.8 entrypoint.
+"""ComfyUI-Acheng-ShotVault v5.8 entrypoint.
 
 Copyright (C) 2026 AchengOoO (AharaOoO)
 Licensed under the GNU General Public License v3.0 (GPL-3.0-only).
@@ -29,7 +29,7 @@ try:
     NODE_CLASS_MAPPINGS.update(_SB_CLASS_MAPPINGS)
     NODE_DISPLAY_NAME_MAPPINGS.update(_SB_DISPLAY_MAPPINGS)
 except Exception as _sb_err:  # pragma: no cover
-    logging.warning(f"[ComfyUI-Universal-ShotVault] Optional seam_bridge nodes not loaded: {_sb_err}")
+    logging.warning(f"[ComfyUI-Acheng-ShotVault] Optional seam_bridge nodes not loaded: {_sb_err}")
 
 try:
     register_routes()

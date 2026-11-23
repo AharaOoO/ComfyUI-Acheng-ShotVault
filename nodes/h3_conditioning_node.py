@@ -124,7 +124,7 @@ class ShotVaultH3Conditioning:
     RETURN_TYPES = ("CONDITIONING", "LATENT", "STRING")
     RETURN_NAMES = ("positive", "latent", "active_ref_map")
     FUNCTION = "encode_shot"
-    CATEGORY = "ShotVault/Signal"
+    CATEGORY = "Acheng-ShotVault/Signal"
 
     def encode_shot(
         self,

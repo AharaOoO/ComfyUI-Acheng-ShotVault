@@ -126,7 +126,7 @@ class ShotVaultPlan:
     RETURN_TYPES = ("SHOT_PIPE", "INT", "STRING")
     RETURN_NAMES = ("shot_pipe", "total_shots", "plan_summary_json")
     FUNCTION = "plan"
-    CATEGORY = "ShotVault/Core"
+    CATEGORY = "Acheng-ShotVault/Core"
 
     def plan(
         self,

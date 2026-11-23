@@ -44,7 +44,7 @@ class ShotVaultWindowGuider:
     RETURN_TYPES = ("GUIDER", "LATENT")
     RETURN_NAMES = ("guider", "latent")
     FUNCTION = "prepare_guider"
-    CATEGORY = "ShotVault/Signal"
+    CATEGORY = "Acheng-ShotVault/Signal"
 
     def prepare_guider(
         self,

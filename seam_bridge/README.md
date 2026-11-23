@@ -1,5 +1,9 @@
 # Acheng Seam Bridge · 接缝修复
 
+> **[🧪 Experimental / 实验功能]** Seam repair (`AchengSeamBridge` / `AchengFuzzPuppyClipMerge` repair mode) is currently experimental and **only intended for correcting sudden visual glitches caused by continuation when camera angle and framing remain unchanged**. Keep it **OFF** by default for standard multi-cut workflows.
+>
+> 接缝修复目前处于**实验功能**阶段，**仅适用于机位与分镜保持不变时、因续接生成导致的画面突变修补**；平时常规切镜基本无需开启。
+
 生成后、编码前修一处已知接缝。适用于能提供标准 ComfyUI `IMAGE` 的分段视频工作流，不依赖 H3、循环节点或 ShotVault。禁止自动移动切点：帧数、分辨率、帧率（由下游控制）和音频不变。
 
 ## 接线

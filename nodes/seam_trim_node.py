@@ -61,7 +61,7 @@ class ShotVaultSeamTrim:
     RETURN_TYPES = ("IMAGE", "AUDIO")
     RETURN_NAMES = ("images", "audio")
     FUNCTION = "trim_and_match"
-    CATEGORY = "ShotVault/Signal"
+    CATEGORY = "Acheng-ShotVault/Signal"
 
     def trim_and_match(
         self,

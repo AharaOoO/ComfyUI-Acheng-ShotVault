@@ -261,7 +261,7 @@ def _run_bridge_backend(endpoints, count, backend, allow_flow_fallback, rife_che
 
 
 class AchengSeamBridge:
-    CATEGORY = "Acheng/Video"
+    CATEGORY = "Acheng-ShotVault/SeamBridge (Experimental)"
     FUNCTION = "repair"
     RETURN_TYPES = ("IMAGE", "AUDIO", "STRING")
     RETURN_NAMES = ("images", "audio_unchanged", "diagnostics")

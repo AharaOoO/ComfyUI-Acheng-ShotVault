@@ -110,7 +110,7 @@ class ShotVaultLoopDispatch:
         "prev_clean_images",
     )
     FUNCTION = "dispatch"
-    CATEGORY = "ShotVault/Core"
+    CATEGORY = "Acheng-ShotVault/Core"
 
     @classmethod
     def IS_CHANGED(

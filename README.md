@@ -1,6 +1,6 @@
 <div align="center">
 
-# ComfyUI-Universal-ShotVault (v5.8)
+# ComfyUI-Acheng-ShotVault (v5.8)
 
 **Production-Grade ComfyUI Suite for MiniMax H3 Multi-Shot Planning, Lossless Context Continuation, Bidirectional Bridge Single-Shot Reroll, Local Seam Repair, and Manifest-Verified Master Assembly**
 
@@ -9,7 +9,7 @@
 </p>
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Release](https://img.shields.io/badge/Release-v5.8.1-emerald.svg)](https://github.com/AharaOoO/ComfyUI-Universal-ShotVault/releases)
+[![Release](https://img.shields.io/badge/Release-v5.8.2-emerald.svg)](https://github.com/AharaOoO/ComfyUI-Acheng-ShotVault/releases)
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-Custom%20Nodes-orange.svg)](https://github.com/comfyanonymous/ComfyUI)
 [![Python](https://img.shields.io/badge/Python-%E2%89%A53.10-3776AB.svg)](https://www.python.org/)
 
@@ -59,6 +59,9 @@ flowchart LR
 
 ## 2. Included Nodes (10-in-1 Suite)
 
+> [!NOTE]
+> **🧪 Experimental Feature Notice (Seam Repair)**: Built-in seam repair (Tab ② per-shot repair, `AchengSeamBridge`, and the `enable_repair` toggle in `AchengFuzzPuppyClipMerge`) is currently **Experimental**. It is **only effective for correcting sudden visual artifacts caused by continuation when camera angle and framing remain unchanged**. For standard multi-cut workflows, leave it **OFF** by default — you rarely need to enable it.
+
 A single `git clone` into `ComfyUI/custom_nodes/` registers all **10 author-owned nodes** (`8` ShotVault core nodes + `2` bundled local SeamBridge nodes):
 
 | Node Class | Display Name | Role |
@@ -82,23 +85,23 @@ A single `git clone` into `ComfyUI/custom_nodes/` registers all **10 author-owne
 
 ```bash
 cd ComfyUI/custom_nodes
-git clone https://github.com/AharaOoO/ComfyUI-Universal-ShotVault.git
+git clone https://github.com/AharaOoO/ComfyUI-Acheng-ShotVault.git
 ```
 
 Install dependencies (standard ComfyUI portable builds already ship most packages; run once to fill any gaps):
 
 ```bash
 # Windows Portable example (run inside ComfyUI_windows_portable):
-.\python_embeded\python.exe -m pip install -r .\ComfyUI\custom_nodes\ComfyUI-Universal-ShotVault\requirements.txt
+.\python_embeded\python.exe -m pip install -r .\ComfyUI\custom_nodes\ComfyUI-Acheng-ShotVault\requirements.txt
 
 # Standard Python / venv example:
-pip install -r ComfyUI/custom_nodes/ComfyUI-Universal-ShotVault/requirements.txt
+pip install -r ComfyUI/custom_nodes/ComfyUI-Acheng-ShotVault/requirements.txt
 ```
 
 ### Option 2: Download Release Archive
 
-1. Download the archive from [Releases](https://github.com/AharaOoO/ComfyUI-Universal-ShotVault/releases) or click **Code → Download ZIP**.
-2. Extract to `ComfyUI/custom_nodes/ComfyUI-Universal-ShotVault` (ensure `__init__.py` sits directly inside that folder).
+1. Download the archive from [Releases](https://github.com/AharaOoO/ComfyUI-Acheng-ShotVault/releases) or click **Code → Download ZIP**.
+2. Extract to `ComfyUI/custom_nodes/ComfyUI-Acheng-ShotVault` (ensure `__init__.py` sits directly inside that folder).
 3. Install `requirements.txt`, **restart ComfyUI**, and hard-refresh the browser (**`Ctrl + F5`** / **`Cmd + Shift + R`**).
 
 ### Optional: Local ONNX RIFE Backend for Seam Repair
@@ -106,7 +109,7 @@ pip install -r ComfyUI/custom_nodes/ComfyUI-Universal-ShotVault/requirements.txt
 In strict compliance with open-source licensing, this repository does **not** redistribute third-party binary model weights. Out of the box, `seam_bridge/` uses OpenCV DIS optical-flow alignment or dynamically reuses local RIFE weights from `ComfyUI-Frame-Interpolation` if installed.
 
 To optionally enable the ONNX RIFE backend, install `onnxruntime` (or `onnxruntime-gpu`) and place your locally obtained `rife422lite_fp32.onnx` into either path:
-- `ComfyUI/custom_nodes/ComfyUI-Universal-ShotVault/seam_bridge/models/rife422lite_fp32.onnx`
+- `ComfyUI/custom_nodes/ComfyUI-Acheng-ShotVault/seam_bridge/models/rife422lite_fp32.onnx`
 - `ComfyUI/models/rife/rife422lite_fp32.onnx`
 
 ---
@@ -218,7 +221,7 @@ All original source code in this repository is licensed under the **[GNU General
 
 Personal use, film production, academic research, and GPL-3.0-compliant community forks are warmly welcomed. However, **copyright stripping, rebranding resale ("换皮倒卖"), and closed-source repackaging are strictly prohibited**. Under GPL-3.0 Sections 4, 5, 6, and 8 and the repository [`NOTICE`](NOTICE) file:
 
-1. **Mandatory Attribution**: Every redistribution, fork, integrated launcher pack, cloud image, or derivative node suite must prominently retain `Copyright (C) 2026 AchengOoO (AharaOoO)` and the original repository URL (`https://github.com/AharaOoO/ComfyUI-Universal-ShotVault`).
+1. **Mandatory Attribution**: Every redistribution, fork, integrated launcher pack, cloud image, or derivative node suite must prominently retain `Copyright (C) 2026 AchengOoO (AharaOoO)` and the original repository URL (`https://github.com/AharaOoO/ComfyUI-Acheng-ShotVault`).
 2. **Strong Copyleft Enforcement**: Any distributed modification or derivative bundle (including paid installers, encrypted plugins, or bundled commercial tools) **must** be licensed under **GPL-3.0** with complete corresponding source code made available to all recipients and clear modification notices.
 3. **No Official Endorsement / Impersonation**: Do not use "ShotVault Official", "AchengOoO", or "AharaOoO" to imply official endorsement or pass off third-party packs as official releases.
 4. **Automatic License Termination**: Any violation of GPL-3.0 automatically terminates your rights under Section 8. The author reserves all legal remedies, including DMCA takedowns and copyright enforcement.

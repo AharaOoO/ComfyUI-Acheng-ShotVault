@@ -1,6 +1,6 @@
-# Contributing to ComfyUI-Universal-ShotVault
+# Contributing to ComfyUI-Acheng-ShotVault
 
-Thank you for your interest in improving **ComfyUI-Universal-ShotVault**!
+Thank you for your interest in improving **ComfyUI-Acheng-ShotVault**!
 
 ## Code of Conduct & Open-Source Ethos
 
@@ -9,7 +9,7 @@ Thank you for your interest in improving **ComfyUI-Universal-ShotVault**!
 
 ## Development Workflow
 
-1. Fork [https://github.com/AharaOoO/ComfyUI-Universal-ShotVault](https://github.com/AharaOoO/ComfyUI-Universal-ShotVault) and create a feature branch from `main`.
+1. Fork [https://github.com/AharaOoO/ComfyUI-Acheng-ShotVault](https://github.com/AharaOoO/ComfyUI-Acheng-ShotVault) and create a feature branch from `main`.
 2. Ensure all Python files compile cleanly and existing unit tests pass:
    ```bash
    python -m unittest discover -s tests -p "test_phase*.py"

@@ -86,7 +86,7 @@ class ShotVaultLoad:
         "shot_pipe", "prev_clean_images", "is_drama_mode", "prompt", "width", "height", "target_frames", "seed", "asset_ref_1", "asset_ref_2",
     )
     FUNCTION = "load_shot"
-    CATEGORY = "ShotVault/Core"
+    CATEGORY = "Acheng-ShotVault/Core"
 
     @classmethod
     def IS_CHANGED(

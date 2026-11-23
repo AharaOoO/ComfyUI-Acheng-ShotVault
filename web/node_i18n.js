@@ -1,6 +1,6 @@
 /**
  * Unified canvas node-title & widget-label bilingual (ZH / EN) localization
- * for all 10 nodes in ComfyUI-Universal-ShotVault (8 ShotVault* + 2 AchengSeamBridge*).
+ * for all 10 nodes in ComfyUI-Acheng-ShotVault (8 ShotVault* + 2 AchengSeamBridge*).
  *
  * Strictly display-layer only: never mutates Python INPUT_TYPES keys, widget names,
  * or serialized workflow widget values (except optional `ui_lang` diagnostics enum).

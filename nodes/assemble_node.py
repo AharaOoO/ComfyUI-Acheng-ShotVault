@@ -35,7 +35,7 @@ class ShotVaultAssemble:
     RETURN_TYPES = ("STRING", "STRING", "STRING")
     RETURN_NAMES = ("master_path", "fcpxml_path", "report_json")
     FUNCTION = "assemble"
-    CATEGORY = "ShotVault/Core"
+    CATEGORY = "Acheng-ShotVault/Core"
     OUTPUT_NODE = True
 
     @classmethod

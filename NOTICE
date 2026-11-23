@@ -1,5 +1,5 @@
-ComfyUI-Universal-ShotVault
-Copyright (C) 2026 AchengOoO (AharaOoO) <https://github.com/AharaOoO/ComfyUI-Universal-ShotVault>
+ComfyUI-Acheng-ShotVault
+Copyright (C) 2026 AchengOoO (AharaOoO) <https://github.com/AharaOoO/ComfyUI-Acheng-ShotVault>
 
 ================================================================================
 COPYRIGHT, ATTRIBUTION & AUTHOR RIGHTS NOTICE
@@ -15,7 +15,7 @@ COPYRIGHT, ATTRIBUTION & AUTHOR RIGHTS NOTICE
    Any distribution of verbatim copies, modified versions, repackaged node
    bundles, integrated ComfyUI launchers ("整合包"), or derivative works MUST:
    (a) Conspicuously retain this copyright notice (`Copyright (C) 2026 AchengOoO
-       (AharaOoO)`) and original repository link (`https://github.com/AharaOoO/ComfyUI-Universal-ShotVault`);
+       (AharaOoO)`) and original repository link (`https://github.com/AharaOoO/ComfyUI-Acheng-ShotVault`);
    (b) Clearly state prominent notices of any modifications made and their dates;
    (c) License the entire derivative work under GPL-3.0 and provide complete
        corresponding source code to all recipients (no closed-source or
@@ -27,7 +27,7 @@ COPYRIGHT, ATTRIBUTION & AUTHOR RIGHTS NOTICE
    under GPL-3.0 Section 8.
 
 3. TRADEMARK & NON-ENDORSEMENT
-   The names "ShotVault", "ComfyUI-Universal-ShotVault", "AchengSeamBridge",
+   The names "ShotVault", "ComfyUI-Acheng-ShotVault", "AchengSeamBridge",
    "AchengOoO", and "AharaOoO" identify the original author and official
    releases. Forks or third-party redistributions must not imply official
    endorsement or pass themselves off as the official release.

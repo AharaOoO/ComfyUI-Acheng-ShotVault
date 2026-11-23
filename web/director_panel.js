@@ -1796,6 +1796,18 @@ function attachPanelController(node) {
     const repairChoice = String(seamRep.choice || (hasRepaired ? "repaired" : "original"));
 
     const repairBar = el("div", { class: "sv-repair-bar" }, [
+      el("div", {
+        style: {
+          fontSize: "10.5px",
+          lineHeight: "1.4",
+          color: "#b7c0d6",
+          background: "rgba(180, 140, 48, 0.10)",
+          border: "1px solid rgba(198, 150, 56, 0.28)",
+          borderRadius: "5px",
+          padding: "4px 7px",
+        },
+        text: t("repair_exp_note"),
+      }),
       el("div", { class: "sv-row", style: { justifyContent: "space-between" } }, [
         el("button", {
           class: `sv-btn ${repairEnabled ? "ok" : ""}`,

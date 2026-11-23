@@ -5,7 +5,7 @@
 If you discover a security vulnerability (such as path traversal, unsafe file handling, command injection, or arbitrary file read/write in the local ComfyUI server routes), please **do not** open a public issue with exploit details.
 
 Instead, report it privately via GitHub Security Advisories at:
-- https://github.com/AharaOoO/ComfyUI-Universal-ShotVault/security/advisories/new
+- https://github.com/AharaOoO/ComfyUI-Acheng-ShotVault/security/advisories/new
 
 Please include:
 1. Affected version (`v5.8.0` or commit SHA) and ComfyUI environment details.

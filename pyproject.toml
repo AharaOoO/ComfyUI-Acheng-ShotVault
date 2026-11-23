@@ -1,7 +1,7 @@
 [project]
-name = "comfyui-universal-shotvault"
-description = "Production-grade ComfyUI node suite for MiniMax H3 long-form multi-shot video planning, lossless continuation, bidirectional bridge single-shot reroll, seam repair, and manifest-verified master assembly."
-version = "5.8.1"
+name = "comfyui-acheng-shotvault"
+description = "Production-grade ComfyUI node suite for MiniMax H3 long-form multi-shot video planning, lossless continuation, bidirectional bridge single-shot reroll, experimental seam repair, and manifest-verified master assembly."
+version = "5.8.2"
 license = { text = "GPL-3.0-only" }
 requires-python = ">=3.10"
 authors = [
@@ -9,10 +9,10 @@ authors = [
 ]
 
 [project.urls]
-Repository = "https://github.com/AharaOoO/ComfyUI-Universal-ShotVault"
-Issues = "https://github.com/AharaOoO/ComfyUI-Universal-ShotVault/issues"
+Repository = "https://github.com/AharaOoO/ComfyUI-Acheng-ShotVault"
+Issues = "https://github.com/AharaOoO/ComfyUI-Acheng-ShotVault/issues"
 
 [tool.comfy]
-PublisherId = "aharaooo"
-DisplayName = "ComfyUI Universal ShotVault (v5.8)"
+PublisherId = "acheng"
+DisplayName = "ComfyUI-Acheng-ShotVault"
 Icon = ""

@@ -1,6 +1,6 @@
 <div align="center">
 
-# ComfyUI-Universal-ShotVault (v5.8)
+# ComfyUI-Acheng-ShotVault (v5.8)
 
 **面向 MiniMax H3 长视频分段制作的工业级可视化分镜规划、无损续拍、双向桥接单段重抽与成片封装节点套件**
 
@@ -9,7 +9,7 @@
 </p>
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Release](https://img.shields.io/badge/Release-v5.8.1-emerald.svg)](https://github.com/AharaOoO/ComfyUI-Universal-ShotVault/releases)
+[![Release](https://img.shields.io/badge/Release-v5.8.2-emerald.svg)](https://github.com/AharaOoO/ComfyUI-Acheng-ShotVault/releases)
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-Custom%20Nodes-orange.svg)](https://github.com/comfyanonymous/ComfyUI)
 [![Python](https://img.shields.io/badge/Python-%E2%89%A53.10-3776AB.svg)](https://www.python.org/)
 
@@ -59,6 +59,9 @@ flowchart LR
 
 ## 二、节点总览（内置 10 个核心节点）
 
+> [!NOTE]
+> **🧪 实验功能说明（接缝修复）**：接缝修复功能（Tab ② 单镜修缝、`AchengSeamBridge` 及 `AchengFuzzPuppyClipMerge` 的 `enable_repair` 开关）目前处于**实验性阶段**，**仅适用于画面机位与分镜保持不变时，因续接生成导致的画面突变修补**。日常常规多切镜创作保持默认关闭（`OFF`）即可，平时基本无需开启。
+
 安装本仓库即可在 ComfyUI 中直接获得以下 **10 个原创节点**（`8` 个 ShotVault 主流程节点 + `2` 个内置 SeamBridge 接缝/合并节点）：
 
 | 节点类名 (`Class`) | 显示名称 | 核心职责 |
@@ -82,23 +85,23 @@ flowchart LR
 
 ```bash
 cd ComfyUI/custom_nodes
-git clone https://github.com/AharaOoO/ComfyUI-Universal-ShotVault.git
+git clone https://github.com/AharaOoO/ComfyUI-Acheng-ShotVault.git
 ```
 
 安装依赖（标准 ComfyUI 便携版通常已预装大部分依赖，执行一次补齐即可）：
 
 ```bash
 # Windows 便携版示例（在 ComfyUI_windows_portable 目录运行）：
-.\python_embeded\python.exe -m pip install -r .\ComfyUI\custom_nodes\ComfyUI-Universal-ShotVault\requirements.txt
+.\python_embeded\python.exe -m pip install -r .\ComfyUI\custom_nodes\ComfyUI-Acheng-ShotVault\requirements.txt
 
 # 独立 Python / venv 环境示例：
-pip install -r ComfyUI/custom_nodes/ComfyUI-Universal-ShotVault/requirements.txt
+pip install -r ComfyUI/custom_nodes/ComfyUI-Acheng-ShotVault/requirements.txt
 ```
 
 ### 方式 2：ZIP 下载安装
 
-1. 点击本仓库右上角 **Code → Download ZIP**（或前往 [Releases](https://github.com/AharaOoO/ComfyUI-Universal-ShotVault/releases) 下载对应版本）。
-2. 解压到 `ComfyUI/custom_nodes/ComfyUI-Universal-ShotVault`（确保 `__init__.py` 直接位于该目录下）。
+1. 点击本仓库右上角 **Code → Download ZIP**（或前往 [Releases](https://github.com/AharaOoO/ComfyUI-Acheng-ShotVault/releases) 下载对应版本）。
+2. 解压到 `ComfyUI/custom_nodes/ComfyUI-Acheng-ShotVault`（确保 `__init__.py` 直接位于该目录下）。
 3. 按上方命令补齐依赖，**重启 ComfyUI**，浏览器按 **`Ctrl + F5`** 强制刷新前端脚本。
 
 ### 可选：启用 ONNX RIFE 接缝修复加速
@@ -106,7 +109,7 @@ pip install -r ComfyUI/custom_nodes/ComfyUI-Universal-ShotVault/requirements.txt
 本仓库遵循开源合规原则，**不直接附带第三方二进制模型权重**。默认即可使用内置 OpenCV DIS 光流对齐或自动复用你已安装的 `ComfyUI-Frame-Interpolation` 本地 RIFE 权重。
 
 如需启用 ONNX RIFE 后端，请安装 `onnxruntime`（或 `onnxruntime-gpu`），并将你本地合法获取的 `rife422lite_fp32.onnx` 放置于以下任一目录：
-- `ComfyUI/custom_nodes/ComfyUI-Universal-ShotVault/seam_bridge/models/rife422lite_fp32.onnx`
+- `ComfyUI/custom_nodes/ComfyUI-Acheng-ShotVault/seam_bridge/models/rife422lite_fp32.onnx`
 - `ComfyUI/models/rife/rife422lite_fp32.onnx`
 
 ---
@@ -222,7 +225,7 @@ pip install -r ComfyUI/custom_nodes/ComfyUI-Universal-ShotVault/requirements.txt
 
 我们欢迎个人学习、影视创作、学术研究及遵循 GPL-3.0 协议的社区二次开发；但**坚决反对任何形式的抹除署名、换皮倒卖与闭源包装行为**。依据 `GPL-3.0` 第 4、5、6、8 条及本仓库 [`NOTICE`](NOTICE) 文件规定：
 
-1. **必须保留原始署名与来源**：任何形式的二次分发、Fork、一键整合包、云端镜像或衍生节点包，均须在显著位置完整保留原作者版权声明（`Copyright (C) 2026 AchengOoO (AharaOoO)`）及本官方仓库链接（`https://github.com/AharaOoO/ComfyUI-Universal-ShotVault`）。
+1. **必须保留原始署名与来源**：任何形式的二次分发、Fork、一键整合包、云端镜像或衍生节点包，均须在显著位置完整保留原作者版权声明（`Copyright (C) 2026 AchengOoO (AharaOoO)`）及本官方仓库链接（`https://github.com/AharaOoO/ComfyUI-Acheng-ShotVault`）。
 2. **禁止闭源商业封装（强传染性条款）**：若你将本项目或包含本项目修改版的衍生代码向第三方分发（包括付费整合包、加密插件、付费客户端内置等），**必须**同样以 `GPL-3.0` 协议向所有获取者公开完整的对应源代码，并明确标注修改记录与日期。
 3. **禁止冒充官方名义**：未经原作者书面授权，不得使用 `ShotVault 官方`、`AchengOoO / AharaOoO 官方` 等名义进行商业宣传、收费代理或误导性分发。
 4. **违约权利自动终止**：任何违反 GPL-3.0 条款（如删改版权头、隐匿源码、冒名转售）的行为，将依据 GPL-3.0 第 8 条自动丧失使用与分发本软件的合法授权；原作者保留依法固定证据、向相关平台发起 DMCA / 侵权下架投诉及追究法律责任的权利。

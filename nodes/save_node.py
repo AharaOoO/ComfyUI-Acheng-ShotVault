@@ -62,7 +62,7 @@ class ShotVaultSave:
     RETURN_TYPES = ("IMAGE", "AUDIO", "SHOT_PIPE", "STRING", "STRING")
     RETURN_NAMES = ("final_images", "audio", "updated_pipe", "take_id", "video_path")
     FUNCTION = "save_take"
-    CATEGORY = "ShotVault/Core"
+    CATEGORY = "Acheng-ShotVault/Core"
     OUTPUT_NODE = True
 
     def save_take(

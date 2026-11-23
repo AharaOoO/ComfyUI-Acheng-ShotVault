@@ -8429,10 +8429,10 @@
         }
       },
       "widgets_values": [
-        "### 接缝修复架构（FuzzPuppy 1:1 迁移版）\n\n- **#162 ShotVault Seam Trim**：负责 22 帧同步裁切与 CIE Lab 线性锁色。\n- **#211 Acheng Seam Bridge**：默认置 `off` 保持每段 `segments` 原始纯净，避免双重处理（需要单段图像级修补时可切 `fuzzpuppy_align` 或 `auto`）。\n- **真正接缝合并已移至右侧 #188 `Acheng FuzzPuppy Clip Merge`**：同时拿到 A 尾 + B 头（含音频），1:1 执行官网 `eI` 双硬切门控 + `rife422lite` ONNX 对称跨缝 5 帧桥接 / `eS` 稠密网格非刚性对齐 + 30ms 音频交叉淡化。"
+        "### 接缝修复架构（FuzzPuppy 1:1 迁移版）\n\n- **#162 ShotVault Seam Trim**：负责 22 帧同步裁切与 CIE Lab 线性锁色。\n- **#211 Acheng Seam Bridge**：默认置 `off` 保持每段 `segments` 原始纯净，避免双重处理（需要单段图像级修补时可切 `fuzzpuppy_align` 或 `auto`）。\n- **真正接缝合并已移至右侧 #188 `Acheng FuzzPuppy Clip Merge`**：同时拿到 A 尾 + B 头（含音频），1:1 执行官网 `eI` 双硬切门控 + `rife422lite` ONNX 对称跨缝 5 帧桥接 / `eS` 稠密网格非刚性对齐 + 30ms 音频交叉淡化。\n- **🧪 实验功能提示**：接缝修复仅适用于机位与分镜保持不变时、因续接生成导致的画面突变修补；平时常规切镜保持默认关闭即可。"
       ],
       "widgets_values_named": {
-        "text": "### 接缝修复架构（FuzzPuppy 1:1 迁移版）\n\n- **#162 ShotVault Seam Trim**：负责 22 帧同步裁切与 CIE Lab 线性锁色。\n- **#211 Acheng Seam Bridge**：默认置 `off` 保持每段 `segments` 原始纯净，避免双重处理（需要单段图像级修补时可切 `fuzzpuppy_align` 或 `auto`）。\n- **真正接缝合并已移至右侧 #188 `Acheng FuzzPuppy Clip Merge`**：同时拿到 A 尾 + B 头（含音频），1:1 执行官网 `eI` 双硬切门控 + `rife422lite` ONNX 对称跨缝 5 帧桥接 / `eS` 稠密网格非刚性对齐 + 30ms 音频交叉淡化。"
+        "text": "### 接缝修复架构（FuzzPuppy 1:1 迁移版）\n\n- **#162 ShotVault Seam Trim**：负责 22 帧同步裁切与 CIE Lab 线性锁色。\n- **#211 Acheng Seam Bridge**：默认置 `off` 保持每段 `segments` 原始纯净，避免双重处理（需要单段图像级修补时可切 `fuzzpuppy_align` 或 `auto`）。\n- **真正接缝合并已移至右侧 #188 `Acheng FuzzPuppy Clip Merge`**：同时拿到 A 尾 + B 头（含音频），1:1 执行官网 `eI` 双硬切门控 + `rife422lite` ONNX 对称跨缝 5 帧桥接 / `eS` 稠密网格非刚性对齐 + 30ms 音频交叉淡化。\n- **🧪 实验功能提示**：接缝修复仅适用于机位与分镜保持不变时、因续接生成导致的画面突变修补；平时常规切镜保持默认关闭即可。"
       },
       "color": "#1d3547",
       "bgcolor": "#162836"
@@ -10542,10 +10542,10 @@
         }
       },
       "widgets_values": [
-        "### 两条输出链 & FuzzPuppy 无缝合并说明\n\n- **#188 `Acheng FuzzPuppy Clip Merge`**：直接替代原生 `ConcatenateVideo`；仅解码相邻两段边界，历史已合并段零重编码流拷贝。\n- **所见即所得联动 (`shot_pipe` 已接 `#293`)**：默认 `enable_repair = false`（原版无损直拼，与 `ShotVault Plan #20` 预览及 `#201 总装` 100% 一致）。仅当在分镜规划台单镜开启修复（且选择「修复版」）或手动开启 `#188 enable_repair` 时才执行修补，并自动将 3 秒修复对比预览同步回分镜规划台。\n- **自动硬切保护 (`eI`)**：开启修复时，`structureError < 0.38` 且 `flowCoverage > 0.08` 才平滑；换机位/大跳变自动回落零重编码硬切。\n- **模式切换**：`rife (5帧 + rife422lite_fp32.onnx)` 效果与官网一致；静景文戏可切 `auto_align`（稠密 LK + 边缘感知扩散 + 0.8s 缓释）；外挂严格对拍母带 MV 时开启 `preserve_duration = true` 锁死零帧差。"
+        "### 两条输出链 & FuzzPuppy 无缝合并说明\n\n- **#188 `Acheng FuzzPuppy Clip Merge`**：直接替代原生 `ConcatenateVideo`；仅解码相邻两段边界，历史已合并段零重编码流拷贝。\n- **所见即所得联动 (`shot_pipe` 已接 `#293`)**：默认 `enable_repair = false`（原版无损直拼，与 `ShotVault Plan #20` 预览及 `#201 总装` 100% 一致）。仅当在分镜规划台单镜开启修复（且选择「修复版」）或手动开启 `#188 enable_repair` 时才执行修补，并自动将 3 秒修复对比预览同步回分镜规划台。\n- **自动硬切保护 (`eI`)**：开启修复时，`structureError < 0.38` 且 `flowCoverage > 0.08` 才平滑；换机位/大跳变自动回落零重编码硬切。\n- **模式切换**：`rife (5帧 + rife422lite_fp32.onnx)` 效果与官网一致；静景文戏可切 `auto_align`（稠密 LK + 边缘感知扩散 + 0.8s 缓释）；外挂严格对拍母带 MV 时开启 `preserve_duration = true` 锁死零帧差。\n- **🧪 实验功能提示**：接缝修复仅适用于机位与分镜保持不变时、因续接生成导致的画面突变修补；平时常规切镜保持默认关闭即可。"
       ],
       "widgets_values_named": {
-        "text": "### 两条输出链 & FuzzPuppy 无缝合并说明\n\n- **#188 `Acheng FuzzPuppy Clip Merge`**：直接替代原生 `ConcatenateVideo`；仅解码相邻两段边界，历史已合并段零重编码流拷贝。\n- **所见即所得联动 (`shot_pipe` 已接 `#293`)**：默认 `enable_repair = false`（原版无损直拼，与 `ShotVault Plan #20` 预览及 `#201 总装` 100% 一致）。仅当在分镜规划台单镜开启修复（且选择「修复版」）或手动开启 `#188 enable_repair` 时才执行修补，并自动将 3 秒修复对比预览同步回分镜规划台。\n- **自动硬切保护 (`eI`)**：开启修复时，`structureError < 0.38` 且 `flowCoverage > 0.08` 才平滑；换机位/大跳变自动回落零重编码硬切。\n- **模式切换**：`rife (5帧 + rife422lite_fp32.onnx)` 效果与官网一致；静景文戏可切 `auto_align`（稠密 LK + 边缘感知扩散 + 0.8s 缓释）；外挂严格对拍母带 MV 时开启 `preserve_duration = true` 锁死零帧差。"
+        "text": "### 两条输出链 & FuzzPuppy 无缝合并说明\n\n- **#188 `Acheng FuzzPuppy Clip Merge`**：直接替代原生 `ConcatenateVideo`；仅解码相邻两段边界，历史已合并段零重编码流拷贝。\n- **所见即所得联动 (`shot_pipe` 已接 `#293`)**：默认 `enable_repair = false`（原版无损直拼，与 `ShotVault Plan #20` 预览及 `#201 总装` 100% 一致）。仅当在分镜规划台单镜开启修复（且选择「修复版」）或手动开启 `#188 enable_repair` 时才执行修补，并自动将 3 秒修复对比预览同步回分镜规划台。\n- **自动硬切保护 (`eI`)**：开启修复时，`structureError < 0.38` 且 `flowCoverage > 0.08` 才平滑；换机位/大跳变自动回落零重编码硬切。\n- **模式切换**：`rife (5帧 + rife422lite_fp32.onnx)` 效果与官网一致；静景文戏可切 `auto_align`（稠密 LK + 边缘感知扩散 + 0.8s 缓释）；外挂严格对拍母带 MV 时开启 `preserve_duration = true` 锁死零帧差。\n- **🧪 实验功能提示**：接缝修复仅适用于机位与分镜保持不变时、因续接生成导致的画面突变修补；平时常规切镜保持默认关闭即可。"
       },
       "color": "#1d3547",
       "bgcolor": "#162836"

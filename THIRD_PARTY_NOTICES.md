@@ -1,6 +1,6 @@
 # Third-Party Notices & Attributions
 
-`ComfyUI-Universal-ShotVault` respects open-source licenses and intellectual property rights. This repository contains **only original author-owned code** and does **not** vendor third-party node repositories or redistribute proprietary binary weights.
+`ComfyUI-Acheng-ShotVault` respects open-source licenses and intellectual property rights. This repository contains **only original author-owned code** and does **not** vendor third-party node repositories or redistribute proprietary binary weights.
 
 The example workflow and optional runtime features interoperate with the following independent open-source projects, whose copyrights and licenses belong exclusively to their respective authors:
 

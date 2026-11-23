@@ -309,7 +309,7 @@ def _resolve_codec_enum(codec_str: str):
 class AchengFuzzPuppyClipMerge:
     """Drop-in VIDEO+VIDEO seamless merger faithfully porting FuzzPuppy Clip Merge (`eI`+`eS`+`eT`+`V`+`eP`)."""
 
-    CATEGORY = "Acheng/Video"
+    CATEGORY = "Acheng-ShotVault/SeamBridge (Experimental)"
     FUNCTION = "merge"
     RETURN_TYPES = ("VIDEO", "STRING")
     RETURN_NAMES = ("video", "diagnostics")
