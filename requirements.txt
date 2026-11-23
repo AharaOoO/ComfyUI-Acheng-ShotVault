@@ -1,0 +1,11 @@
+# Core runtime dependencies (typically pre-installed in standard ComfyUI environments)
+torch>=2.1.0
+numpy>=1.24.0
+Pillow>=10.0.0
+safetensors>=0.4.0
+av>=12.0.0
+send2trash>=1.8.0
+opencv-python-headless>=4.8.0
+
+# Optional: enables ONNX RIFE backend in AchengSeamBridge / AchengFuzzPuppyClipMerge
+# onnxruntime>=1.17.0

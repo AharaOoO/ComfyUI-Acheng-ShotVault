@@ -1,0 +1,44 @@
+ComfyUI-Universal-ShotVault
+Copyright (C) 2026 AchengOoO (AharaOoO) <https://github.com/AharaOoO/ComfyUI-Universal-ShotVault>
+
+================================================================================
+COPYRIGHT, ATTRIBUTION & AUTHOR RIGHTS NOTICE
+================================================================================
+
+1. LICENSE
+   This software is free and open-source software licensed under the GNU General
+   Public License v3.0 (GPL-3.0-only). You may use, study, modify, and
+   redistribute it strictly under the terms of the GPL-3.0 license included in
+   the `LICENSE` file.
+
+2. MANDATORY ATTRIBUTION & ANTI-PLAGIARISM (GPL-3.0 SECTIONS 4, 5, 6)
+   Any distribution of verbatim copies, modified versions, repackaged node
+   bundles, integrated ComfyUI launchers ("整合包"), or derivative works MUST:
+   (a) Conspicuously retain this copyright notice (`Copyright (C) 2026 AchengOoO
+       (AharaOoO)`) and original repository link (`https://github.com/AharaOoO/ComfyUI-Universal-ShotVault`);
+   (b) Clearly state prominent notices of any modifications made and their dates;
+   (c) License the entire derivative work under GPL-3.0 and provide complete
+       corresponding source code to all recipients (no closed-source or
+       obfuscated commercial repackaging).
+
+   Stripping author notices, claiming original authorship of this codebase, or
+   redistributing modified versions without GPL-3.0 source disclosure is a
+   direct violation of the license and automatically terminates your rights
+   under GPL-3.0 Section 8.
+
+3. TRADEMARK & NON-ENDORSEMENT
+   The names "ShotVault", "ComfyUI-Universal-ShotVault", "AchengSeamBridge",
+   "AchengOoO", and "AharaOoO" identify the original author and official
+   releases. Forks or third-party redistributions must not imply official
+   endorsement or pass themselves off as the official release.
+
+4. INDEPENDENCE & DISCLAIMER
+   This project is an independent, clean-room open-source engineering suite for
+   ComfyUI. It is NOT affiliated with, sponsored by, or endorsed by MiniMax,
+   Comfy Org, or any third-party video service. All third-party trademarks and
+   model copyrights belong exclusively to their respective owners.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. Users are
+   solely responsible for ensuring that their use of third-party models, prompts,
+   reference media, and generated outputs complies with all applicable laws,
+   model licenses, and third-party rights.

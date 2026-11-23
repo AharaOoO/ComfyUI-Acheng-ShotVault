@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# OS & Editors
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# Local model weights & user outputs (never commit binary weights or generated media)
+seam_bridge/models/*.onnx
+seam_bridge/models/*.pth
+seam_bridge/models/*.pt
+seam_bridge/models/*.safetensors
+*.mp4
+*.mov
+*.wav
+*.flac
