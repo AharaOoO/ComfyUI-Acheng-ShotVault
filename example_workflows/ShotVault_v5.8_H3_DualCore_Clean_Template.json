@@ -2350,57 +2350,6 @@
       "bgcolor": "#335"
     },
     {
-      "id": 50,
-      "type": "LoraLoaderModelOnly",
-      "pos": [
-        6951.40351373846,
-        170.70175686923008
-      ],
-      "size": [
-        355,
-        110
-      ],
-      "flags": {},
-      "order": 232,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 289
-        }
-      ],
-      "outputs": [
-        {
-          "name": "MODEL",
-          "type": "MODEL",
-          "links": [
-            31
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.45.0",
-        "Node name for S&R": "LoraLoaderModelOnly",
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "version": "7.7",
-          "input_ue_unconnectable": {}
-        }
-      },
-      "widgets_values": [
-        "minimax H3\\minimax_h3_fl2v_turbo_8step_v1.1_768p_comfyui_bf16.safetensors",
-        0.5
-      ],
-      "widgets_values_named": {
-        "lora_name": "minimax H3\\minimax_h3_fl2v_turbo_8step_v1.1_768p_comfyui_bf16.safetensors",
-        "strength_model": 0.5
-      },
-      "color": "#223",
-      "bgcolor": "#335"
-    },
-    {
       "id": 51,
       "type": "LoraLoaderModelOnly",
       "pos": [
@@ -3204,10 +3153,10 @@
         }
       },
       "widgets_values": [
-        "### LoRA 路由 · 按镜文武互斥\n\n- **一采武戏**：Ref2V Turbo 0.85 → FL2V Turbo 0.50 → 动作链。\n- **一采文戏**：DMAD Full Critic 8-step 0.85 → Combat V2 0.65。从基座独立加载，不叠武戏的两个 Turbo。\n- **二采武戏**：T8 Advanced 加载 Dareties V4 1.00（legacy_tensor_only / legacy）→ 动作链。\n- **二采文戏**：DMAD 4-step 1.00 → Combat V2 0.65。\n- 速度滑块同时驱动两条武戏尾端的 LoRA 强度；保留原默认 3。"
+        "### LoRA 路由 · 按镜文武互斥\n\n- **一采武戏**：DMAD Full Critic 8-step 1.00 → 动作链（已移除多余 FL2V 8-step Turbo）。\n- **一采文戏**：DMAD Full Critic 8-step 1.00 → Combat V2 0.60 → VBVR I2V V2 0.45。\n- **二采武戏**：DMAD 4-step 0.55 → FL2V Turbo 4-step v1.2 0.75 → 动作链。\n- **二采文戏**：DMAD 4-step 1.00 → Combat V2 0.45 → VBVR I2V V2 0.35。\n- 速度滑块同时驱动两条武戏尾端的 LoRA 强度。"
       ],
       "widgets_values_named": {
-        "text": "### LoRA 路由 · 按镜文武互斥\n\n- **一采武戏**：Ref2V Turbo 0.85 → FL2V Turbo 0.50 → 动作链。\n- **一采文戏**：DMAD Full Critic 8-step 0.85 → Combat V2 0.65。从基座独立加载，不叠武戏的两个 Turbo。\n- **二采武戏**：T8 Advanced 加载 Dareties V4 1.00（legacy_tensor_only / legacy）→ 动作链。\n- **二采文戏**：DMAD 4-step 1.00 → Combat V2 0.65。\n- 速度滑块同时驱动两条武戏尾端的 LoRA 强度；保留原默认 3。"
+        "text": "### LoRA 路由 · 按镜文武互斥\n\n- **一采武戏**：DMAD Full Critic 8-step 1.00 → 动作链（已移除多余 FL2V 8-step Turbo）。\n- **一采文戏**：DMAD Full Critic 8-step 1.00 → Combat V2 0.60 → VBVR I2V V2 0.45。\n- **二采武戏**：DMAD 4-step 0.55 → FL2V Turbo 4-step v1.2 0.75 → 动作链。\n- **二采文戏**：DMAD 4-step 1.00 → Combat V2 0.45 → VBVR I2V V2 0.35。\n- 速度滑块同时驱动两条武戏尾端的 LoRA 强度。"
       },
       "color": "#1f3626",
       "bgcolor": "#16261b"
@@ -14712,7 +14661,7 @@
           "name": "MODEL",
           "type": "MODEL",
           "links": [
-            289
+            31
           ]
         }
       ],
@@ -15059,7 +15008,7 @@
     ],
     [
       31,
-      50,
+      297,
       0,
       51,
       0,
@@ -16654,14 +16603,6 @@
       268,
       0,
       297,
-      0,
-      "MODEL"
-    ],
-    [
-      289,
-      297,
-      0,
-      50,
       0,
       "MODEL"
     ],
