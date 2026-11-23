@@ -2,12 +2,14 @@
 
 # ComfyUI-Universal-ShotVault (v5.8)
 
-**面向 MiniMax H3 长视频分段制作的工业级可视化分镜规划、无损续拍、双向桥接单段重抽与成片封装节点套件**
+**Production-Grade ComfyUI Suite for MiniMax H3 Multi-Shot Planning, Lossless Context Continuation, Bidirectional Bridge Single-Shot Reroll, Local Seam Repair, and Manifest-Verified Master Assembly**
 
-*A production-grade ComfyUI custom node suite for MiniMax H3 multi-shot planning, lossless context continuation, bidirectional bridge single-shot reroll, local seam repair, and manifest-verified master assembly.*
+<p>
+  <strong>English</strong> | <a href="README_ZH.md">简体中文</a>
+</p>
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Release-v5.8.0-emerald.svg)](https://github.com/AharaOoO/ComfyUI-Universal-ShotVault/releases)
+[![Release](https://img.shields.io/badge/Release-v5.8.0-emerald.svg)](https://github.com/AharaOoO/ComfyUI-Universal-ShotVault/releases)
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-Custom%20Nodes-orange.svg)](https://github.com/comfyanonymous/ComfyUI)
 [![Python](https://img.shields.io/badge/Python-%E2%89%A53.10-3776AB.svg)](https://www.python.org/)
 
@@ -15,243 +17,226 @@
 
 ---
 
-## English Overview
+## Table of Contents
 
-**ComfyUI-Universal-ShotVault** solves the hardest engineering bottlenecks in long-form **MiniMax H3** video production inside ComfyUI:
-
-- **Visual Shot Planner (`ShotVaultPlan`)**: Built-in interactive console inside the node for multi-shot script splitting (`&duration&` + `===`), per-shot action/drama (`武戏/文戏`) dual-core LoRA routing, 9-slot reference management, `@cut@` / `@continue@` lineage control, and fixed-camera anti-degradation policies.
-- **Bidirectional Bridge Single-Shot Reroll (`0 / 1 / 5 / 22f`)**: Reroll any middle shot while anchoring **both** the previous shot's tail context and the next shot's clean delivered head frames (extracted directly from post-trim `shots/*.mp4`, zero chroma-noise contamination), with exact H3 `17k+5` grid & `cycle_pos == 0` alignment and automatic downstream `VALID` lineage recovery.
-- **Manifest-Verified Master Export Sync**: Atomic `.manifest.json` sidecars track exact active takes and seam-repair states per `master.mp4`, with automatic outdated-master detection, optional auto-reassemble after reroll, and old-version download safeguards.
-- **Bundled Local Seam Repair & Lossless Merge**: Includes `AchengSeamBridge` and `AchengFuzzPuppyClipMerge` out of the box (100% local Python/OpenCV/optional ONNX RIFE, zero telemetry, stream-copy lossless history concatenation).
-
-> Licensed under **GNU GPL v3.0 (`GPL-3.0-only`)**. Please read [`LICENSE`](LICENSE), [`NOTICE`](NOTICE), and [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) carefully before redistributing or building derivative packs.
-
----
-
-## 目录
-
-1. [核心架构与能力矩阵 (v5.8)](#一核心架构与能力矩阵-v58)
-2. [节点总览（内置 10 个核心节点）](#二节点总览内置-10-个核心节点)
-3. [安装指南（一键 `git clone` 即用）](#三安装指南一键-git-clone-即用)
-4. [示例工作流与第三方配套节点清单](#四示例工作流与第三方配套节点清单)
-5. [从零上手：完整使用流程](#五从零上手完整使用流程)
-6. [进阶特性详解（双向桥接 / 防劣化 / 成片闭环）](#六进阶特性详解)
-7. [常见问题与生产排雷 (FAQ)](#七常见问题与生产排雷-faq)
-8. [开源协议、作者维权声明与免责条款](#八开源协议作者维权声明与免责条款)
+1. [Architecture & v5.8 Capabilities](#1-architecture--v58-capabilities)
+2. [Included Nodes (10-in-1 Suite)](#2-included-nodes-10-in-1-suite)
+3. [Installation](#3-installation)
+4. [Example Workflow & External Companion Nodes](#4-example-workflow--external-companion-nodes)
+5. [Quick-Start Walkthrough](#5-quick-start-walkthrough)
+6. [Technical Deep-Dive](#6-technical-deep-dive)
+7. [Troubleshooting & Production FAQ](#7-troubleshooting--production-faq)
+8. [License, Copyright Protection & Legal Disclaimer](#8-license-copyright-protection--legal-disclaimer)
 
 ---
 
-## 一、核心架构与能力矩阵 (v5.8)
+## 1. Architecture & v5.8 Capabilities
 
 ```mermaid
 flowchart LR
-    A["ShotVaultPlan<br/>可视化分镜规划台 (Web UI)"] --> B["ShotVaultLoopDispatch<br/>循环调度 & 断点续跑 & 双向锚点加载"]
-    B --> C["ShotVaultH3Conditioning<br/>每镜独立 9图/音轨条件编译"]
-    C --> D["ShotVaultWindowGuider ×2<br/>双采上下文窗口 + 双向尾锚缓存"]
-    D --> E["ShotVaultSeamTrim<br/>精确裁头 + CIE Lab 线性锁色"]
-    E --> F["AchengSeamBridge<br/>可选局部接缝修复"]
-    F --> G["ShotVaultSave<br/>入库 Take + 血缘更新 + 重抽自动重合"]
-    G --> H["AchengFuzzPuppyClipMerge<br/>无损流拷贝实时拼接"]
-    G --> I["ShotVaultAssemble / 面板导出<br/>单遍 PCM 总成片 + .manifest.json + FCPXML"]
+    A["ShotVaultPlan<br/>Visual Planner Console (Web UI)"] --> B["ShotVaultLoopDispatch<br/>Loop Dispatch, Resume & Bidir Anchor Loader"]
+    B --> C["ShotVaultH3Conditioning<br/>Per-Shot 9-Ref & Audio Conditioning"]
+    C --> D["ShotVaultWindowGuider ×2<br/>2-Pass Context Windows + Tail Latent Cache"]
+    D --> E["ShotVaultSeamTrim<br/>Exact Head Trim + CIE Lab MKL Color Lock"]
+    E --> F["AchengSeamBridge<br/>Optional Local Seam Repair"]
+    F --> G["ShotVaultSave<br/>Take Archiving, Lineage DAG & Auto-Assemble"]
+    G --> H["AchengFuzzPuppyClipMerge<br/>Lossless Stream-Copy Live Merge"]
+    G --> I["ShotVaultAssemble / Panel Export<br/>Single-Pass PCM Master + .manifest.json + FCPXML"]
 ```
 
-### v5.8 关键工程特性
+### Key Engineering Highlights (v5.8)
 
-| 模块 | 核心解决的痛点 | v5.8 实现方案 |
+| Subsystem | Production Bottleneck Solved | v5.8 Implementation |
 | :--- | :--- | :--- |
-| **可视化分镜规划台** | 传统多段脚本难管理、文武戏无法混排、改一行全盘重跑 | 节点内嵌完整控制台：支持 `&时长&` + `===` 自动分段、`@cut@` / `@continue@` 显式切镜、每镜独立文武戏路由与 9 图参考槽、自由安全缩放（`紧凑/标准/宽屏`）、全屏专注提示词编辑器（`Ctrl+Enter` 保存） |
-| **双向桥接单段重抽** | 改中间一镜导致与后一段脱节、下游整条链路标红作废 | 支持 **尾接下一段纯净首部（关 / 1帧 / 5帧 / 22帧）**：直接从下一段已裁头成品 MP4 提取无彩噪首帧，严格对齐 H3 `17k+5` 潜空间网格与 `cycle_pos == 0` 相位；`22f` 可选反向渐进微噪（接缝 `pos=0` 零噪），完成后下游血缘自动恢复绿标 `VALID` |
-| **成片导出同步闭环** | 重启 ComfyUI 或单段重抽后，旧 `master.mp4` 未更新导致误下旧片 | 每次导出原子写入伴生 `.manifest.json` 校验清单；支持重抽后**自动重合成片**；顶栏实时检测过期镜头并高亮 `导出成片 · 待更新`，导出弹窗自动拦截误下旧版 MP4 |
-| **固定机位防劣化策略** | 数字人 / 固定机位多轮 `@continue@` 叠加彩噪引发画质脏糊、背景包浆 | 内置三档防劣化策略（标准 / 温和防劣化 / 强保静态背景）+ 周期插 `@cut@` 清零工具，压制静态背景世代衰减 |
-| **本地接缝修复与无损拼接** | 分段拼接偶发亮度微跳、硬切误修或全片重复重编码损耗画质 | 集成 `AchengSeamBridge` + `AchengFuzzPuppyClipMerge`：双门控硬切保护、多时刻稠密光流局部对齐、可选本地 RIFE 桥接，历史已拼片段零重编码流拷贝 |
-| **数据安全与非破坏性管理** | 误删历史 Take 难找回、多工程目录越权污染 | 全部历史版本按 `project.json` + `.h3ctx.safetensors` 独立归档；清理操作强制走系统回收站（`send2trash`）；全路径严格根沙箱校验 |
+| **Visual Shot Planner (`ShotVaultPlan`)** | Managing long multi-shot scripts, mixing action & drama LoRA chains, or rerolling a single shot without rebuilding the graph | Interactive in-node console supporting `&duration&` + `===` auto-splitting, explicit `@cut@` / `@continue@` lineage markers, per-shot Action/Drama routing, 9-slot image references, clamped fluid node resizing (`Compact / Standard / Wide`), full-screen Focus Prompt Editor (`Ctrl+Enter` to save), and live `EN / 中文` UI toggle |
+| **Bidirectional Bridge Single-Shot Reroll (`0 / 1 / 5 / 22f`)** | Rerolling a middle shot breaks continuity with the next shot and invalidates the entire downstream chain | Anchors **both** the previous shot's tail context and the next shot's clean delivered head frames (decoded directly from post-trim `shots/*.mp4`, zero chroma-noise contamination), aligned to H3's `17k+5` latent grid & `cycle_pos == 0`; optional `22f` reverse-taper noise (`alpha=0.0` at seam `pos=0`); automatically restores downstream `VALID` lineage |
+| **Manifest-Verified Master Export Sync** | Switching takes, rerolling a shot, or restarting ComfyUI leaves `master.mp4` silently stale | Every master export atomically writes a sidecar `.manifest.json` snapshot; supports optional **auto-reassemble after reroll**; header CTA highlights outdated status and the Export Modal guards against accidentally downloading stale MP4s |
+| **Fixed-Camera Anti-Degradation** | Static-camera / talking-head scenes suffer generation loss and chroma noise buildup across repeated `@continue@` chains | Three configurable anti-degradation modes (Standard / Gentle / Strong Static-BG Preserve) plus periodic `@cut@` reset tooling to refresh clean reference anchors |
+| **Bundled Local Seam Repair & Lossless Merge** | Micro exposure jumps at joins, accidental hard-cut blending, or quality loss from repeated full-clip re-encoding | Integrated `AchengSeamBridge` & `AchengFuzzPuppyClipMerge`: dual-gate hard-cut protection, dense optical-flow local alignment, optional local RIFE bridging, and zero-reencode stream-copy concatenation for already-merged history |
+| **Safe Local-First Vault Management** | Accidental permanent take deletion or cross-project directory pollution | Isolated per-project archiving (`project.json` + `.h3ctx.safetensors`), strict root-confinement path validation (`ensure_inside_root`), and OS recycle-bin cleanup via `send2trash` |
 
 ---
 
-## 二、节点总览（内置 10 个核心节点）
+## 2. Included Nodes (10-in-1 Suite)
 
-安装本仓库即可在 ComfyUI 中直接获得以下 **10 个节点**（`8` 个 ShotVault 主流程节点 + `2` 个内置 SeamBridge 接缝/合并节点）：
+A single `git clone` into `ComfyUI/custom_nodes/` registers all **10 author-owned nodes** (`8` ShotVault core nodes + `2` bundled local SeamBridge nodes):
 
-| 节点类名 (`Class`) | 显示名称 | 核心职责 |
+| Node Class | Display Name | Role |
 | :--- | :--- | :--- |
-| `ShotVaultPlan` | **ShotVault Plan (可视化分镜规划/音轨编排)** | 主控分镜规划节点，内置交互式 Web 面板，输出 `shot_pipe`、`total_shots`、`plan_summary_json` |
-| `ShotVaultLoopDispatch` | **ShotVault Loop Dispatch (循环调度与双向取帧)** | 配合 `forLoop` 逐镜派发提示词、Seed、参考图、上一段尾上下文与下一段纯净首部锚点；支持断点跳过已有效镜头与单段定向锁镜 |
-| `ShotVaultH3Conditioning` | **ShotVault H3 Conditioning (H3 多模态条件封装)** | 严格按当前镜头的 9 图槽位与音频参考动态构建 H3 条件 |
-| `ShotVaultWindowGuider` | **ShotVault Window Guider (双采上下文窗口引导)** | 支持一采/二采共享头部与尾部潜变量缓存、超长段上下文窗口切分、双向尾锚注入与反向渐进微噪 |
-| `ShotVaultSeamTrim` | **ShotVault Seam Trim (精确裁头与 Lab 线性锁色)** | 按 `22f / 39f / 56f` 精准裁切重叠引导区，并执行 CIE Lab MKL 线性色彩锁定与接缝质检 |
-| `ShotVaultSave` | **ShotVault Save (分镜入库与自动重合)** | 原子保存单镜 MP4、缩略图、接缝对比预览与 `.h3ctx.safetensors` 上下文；更新血缘 DAG 并支持单段重抽后自动刷新总成片 |
-| `ShotVaultAssemble` | **ShotVault Assemble (总成片单遍无漂移封装)** | 零音画漂移单遍 PCM/AAC 封装完整 `master.mp4`、`.manifest.json` 同步清单与达芬奇 `FCPXML` 时间线 |
-| `ShotVaultLoad` | **ShotVault Load (已存镜头读取)** | 按工程名与镜号直接读取已归档的指定 Take 视频与上下文 |
-| `AchengSeamBridge` | **Acheng Seam Bridge · 接缝修复** | 生成后/编码前局部单点接缝修复（支持 `off / auto / align_color / flow / rife`），内置硬切保护 |
-| `AchengFuzzPuppyClipMerge` | **Acheng FuzzPuppy Clip Merge · 视频无缝合并** | 替代原生 `ConcatenateVideo`：仅解码相邻两段边界，历史已合并视频零重编码流拷贝，并支持与 `shot_pipe` 修缝开关联动 |
+| `ShotVaultPlan` | **ShotVault Plan** | Interactive storyboard planner & audio/shot orchestrator; outputs `shot_pipe`, `total_shots`, `plan_summary_json` |
+| `ShotVaultLoopDispatch` | **ShotVault Loop Dispatch** | Drives `forLoop` per-shot prompt/seed/reference dispatch, skips already-`VALID` shots on resume, handles single-shot reroll locking & clean next-head loading |
+| `ShotVaultH3Conditioning` | **ShotVault H3 Conditioning** | Builds per-shot MiniMax H3 multimodal conditioning from active 9-slot image & audio references |
+| `ShotVaultWindowGuider` | **ShotVault Window Guider** | Manages 1st/2nd-pass shared context windows, tail latent caching, bidirectional tail keyframe injection, and reverse-taper noise |
+| `ShotVaultSeamTrim` | **ShotVault Seam Trim** | Trims exact overlap lead-in (`22f / 39f / 56f`), performs CIE Lab MKL linear color lock, and runs seam QC diagnostics |
+| `ShotVaultSave` | **ShotVault Save** | Atomically saves each shot MP4, thumbnail, seam comparison preview, and `.h3ctx.safetensors`; updates lineage DAG and optionally auto-refreshes `master.mp4` |
+| `ShotVaultAssemble` | **ShotVault Assemble** | Zero-drift single-pass PCM/AAC master assembly exporting `master.mp4`, `.manifest.json`, and DaVinci Resolve `FCPXML` |
+| `ShotVaultLoad` | **ShotVault Load** | Loads an archived shot take and context directly by project name and shot index |
+| `AchengSeamBridge` | **Acheng Seam Bridge** | Post-decode / pre-encode local single-seam repair (`off / auto / align_color / flow / rife`) with hard-cut protection |
+| `AchengFuzzPuppyClipMerge` | **Acheng FuzzPuppy Clip Merge** | Drop-in `ConcatenateVideo` replacement: decodes only the active join boundary while stream-copying prior history losslessly |
 
 ---
 
-## 三、安装指南（一键 `git clone` 即用）
+## 3. Installation
 
-### 方式 1：Git 安装（推荐，便于后续 `git pull` 更新）
+### Option 1: Git Clone (Recommended)
 
 ```bash
 cd ComfyUI/custom_nodes
 git clone https://github.com/AharaOoO/ComfyUI-Universal-ShotVault.git
 ```
 
-安装依赖（标准 ComfyUI 便携版通常已预装大部分依赖，执行一次补齐即可）：
+Install dependencies (standard ComfyUI portable builds already ship most packages; run once to fill any gaps):
 
 ```bash
-# Windows 便携版示例（在 ComfyUI_windows_portable 目录运行）：
-.\python_embeded\python.exe -m pip install -r .\ComfyUI\custom_nodes\ComfyUI-Universal-ShotVaultequirements.txt
+# Windows Portable example (run inside ComfyUI_windows_portable):
+.\python_embeded\python.exe -m pip install -r .\ComfyUI\custom_nodes\ComfyUI-Universal-ShotVault\requirements.txt
 
-# 独立 Python / venv 环境示例：
+# Standard Python / venv example:
 pip install -r ComfyUI/custom_nodes/ComfyUI-Universal-ShotVault/requirements.txt
 ```
 
-### 方式 2：ZIP 下载安装
+### Option 2: Download Release Archive
 
-1. 点击本仓库右上角 **Code → Download ZIP**（或前往 [Releases](https://github.com/AharaOoO/ComfyUI-Universal-ShotVault/releases) 下载对应版本）。
-2. 解压到 `ComfyUI/custom_nodes/ComfyUI-Universal-ShotVault`（确保 `__init__.py` 直接位于该目录下）。
-3. 按上方命令补齐依赖，**重启 ComfyUI**，浏览器按 **`Ctrl + F5`** 强制刷新前端脚本。
+1. Download the archive from [Releases](https://github.com/AharaOoO/ComfyUI-Universal-ShotVault/releases) or click **Code → Download ZIP**.
+2. Extract to `ComfyUI/custom_nodes/ComfyUI-Universal-ShotVault` (ensure `__init__.py` sits directly inside that folder).
+3. Install `requirements.txt`, **restart ComfyUI**, and hard-refresh the browser (**`Ctrl + F5`** / **`Cmd + Shift + R`**).
 
-### 可选：启用 ONNX RIFE 接缝修复加速
+### Optional: Local ONNX RIFE Backend for Seam Repair
 
-本仓库遵循开源合规原则，**不直接附带第三方二进制模型权重**。默认即可使用内置 OpenCV DIS 光流对齐或自动复用你已安装的 `ComfyUI-Frame-Interpolation` 本地 RIFE 权重。
+In strict compliance with open-source licensing, this repository does **not** redistribute third-party binary model weights. Out of the box, `seam_bridge/` uses OpenCV DIS optical-flow alignment or dynamically reuses local RIFE weights from `ComfyUI-Frame-Interpolation` if installed.
 
-如需启用 ONNX RIFE 后端，请安装 `onnxruntime`（或 `onnxruntime-gpu`），并将你本地合法获取的 `rife422lite_fp32.onnx` 放置于以下任一目录：
+To optionally enable the ONNX RIFE backend, install `onnxruntime` (or `onnxruntime-gpu`) and place your locally obtained `rife422lite_fp32.onnx` into either path:
 - `ComfyUI/custom_nodes/ComfyUI-Universal-ShotVault/seam_bridge/models/rife422lite_fp32.onnx`
 - `ComfyUI/models/rife/rife422lite_fp32.onnx`
 
 ---
 
-## 四、示例工作流与第三方配套节点清单
+## 4. Example Workflow & External Companion Nodes
 
-本仓库内置了经完整脱敏清洗的 **H3 双采文武戏分镜工作流模板**：
+A fully sanitized, zero-prompt / zero-reference **H3 Dual-Core (Action & Drama) Example Workflow** is included:
 
 - [`example_workflows/ShotVault_v5.8_H3_DualCore_Clean_Template.json`](example_workflows/ShotVault_v5.8_H3_DualCore_Clean_Template.json)
 
-### 配套第三方公共节点（请通过 ComfyUI Manager 安装）
+### External Community Nodes Used by the Example Workflow
 
-示例工作流除本仓库内置的 10 个节点外，还配合使用了以下优秀开源社区节点（均保持独立安装，版权归各自原作者所有）：
+All external community extensions remain independent and should be installed from their respective upstream repositories (or via **ComfyUI Manager → Install Missing Custom Nodes**):
 
-| 第三方节点包 | 用途 | 开源协议 / 获取方式 |
+| Companion Extension | Role in Example Workflow | License / Upstream |
 | :--- | :--- | :--- |
-| **[ComfyUI-H3-Context-Noise](https://github.com/beijinren/ComfyUI-H3-Context-Noise)** | `#106 MiniMaxH3ContextTaperNoise`（H3 续接渐进彩噪抗色漂） | MIT（Copyright © 2026 beijinren），请独立安装 |
-| **[ComfyUI-KJNodes](https://github.com/kijai/ComfyUI-KJNodes)** | `GetNode / SetNode / MiniMaxLowVRAMAttention / VRAM_Debug` | GPL-3.0，ComfyUI Manager 安装 |
-| **[ComfyUI-Easy-Use](https://github.com/yolain/ComfyUI-Easy-Use)** | `easy forLoopStart / forLoopEnd / ifElse / convertAnything` | GPL-3.0，ComfyUI Manager 安装 |
-| **[ComfyUI-Custom-Scripts](https://github.com/pysssss/ComfyUI-Custom-Scripts)** | `ShowText\|pysssss` 文本状态展示 | MIT，ComfyUI Manager 安装 |
-| **[Goohaitools-comfyui](https://github.com/goohai/Goohaitools-comfyui)** | `GoohaiUniversalSlider` 快捷挡位切换 | 见上游仓库，ComfyUI Manager 安装 |
-| **comfyui-minimax-h3-audio-T8** | `MiniMaxH3LoRACompatibilityLoaderT8Advanced / SemanticBridge` | 见上游仓库 |
+| **[ComfyUI-H3-Context-Noise](https://github.com/beijinren/ComfyUI-H3-Context-Noise)** | `#106 MiniMaxH3ContextTaperNoise` (tapered chroma noise for continuation anti-bleed) | MIT (Copyright © 2026 beijinren) — install separately |
+| **[ComfyUI-KJNodes](https://github.com/kijai/ComfyUI-KJNodes)** | `GetNode / SetNode / MiniMaxLowVRAMAttention / VRAM_Debug` | GPL-3.0 |
+| **[ComfyUI-Easy-Use](https://github.com/yolain/ComfyUI-Easy-Use)** | `easy forLoopStart / forLoopEnd / ifElse / convertAnything` | GPL-3.0 |
+| **[ComfyUI-Custom-Scripts](https://github.com/pysssss/ComfyUI-Custom-Scripts)** | `ShowText\|pysssss` status displays | MIT |
+| **[Goohaitools-comfyui](https://github.com/goohai/Goohaitools-comfyui)** | `GoohaiUniversalSlider` preset toggles | See upstream |
+| **comfyui-minimax-h3-audio-T8** | `MiniMaxH3LoRACompatibilityLoaderT8Advanced / SemanticBridge` | See upstream |
 
-> **模型提示**：示例工作流中的 UNET / CLIP / VAE / LoRA 下拉菜单仅为参考占位文件名，载入工作流后请切换为你本机 `ComfyUI/models/` 实际存放的 MiniMax H3 模型与 LoRA。
+> **Model Notice**: UNET / CLIP / VAE / LoRA filenames inside the template JSON are placeholders only. Select your local MiniMax H3 checkpoints and LoRAs after loading the graph.
 
 ---
 
-## 五、从零上手：完整使用流程
+## 5. Quick-Start Walkthrough
 
-1. **载入工作流**：将 `example_workflows/ShotVault_v5.8_H3_DualCore_Clean_Template.json` 拖入 ComfyUI 画布，并确认模型下拉菜单已选择本机对应权重。
-2. **新建项目**：在 **`ShotVault 分镜规划 v5.8`** 节点顶部修改项目名（如 `MyFilm_01`），所有单镜、历史 Take、上下文与成片将自动归档至 `ComfyUI/output/ShotVault/<项目名>/`。
-3. **编排分镜与参考图（Tab ① 分镜编排 & 9图参考）**：
-   - 可展开顶部总脚本框，使用标准分隔语法一键自动拆镜：
+1. **Load Template**: Drag `example_workflows/ShotVault_v5.8_H3_DualCore_Clean_Template.json` into ComfyUI and select your local H3 models.
+2. **Create Project**: Set a unique project name in the **`ShotVault Plan v5.8`** header (e.g., `MyShortFilm_01`). All shots, takes, contexts, and masters are stored cleanly under `ComfyUI/output/ShotVault/<project_name>/`.
+3. **Plan Shots & References (Tab ①)**:
+   - Expand the collapsible Master Script box and paste segmented prompts using `&duration&` + `===`:
      ```text
      & 8 &
      @cut@
-     第一镜提示词描述...
+     Shot 1 visual & action description...
      ===
      & 8 &
      @continue@
-     第二镜续接提示词描述...
+     Shot 2 seamless continuation description...
      ```
-   - 也可直接在条带中点击 **`+ 新增片段`** 逐镜编辑；点击提示词框右上角 **`⛶ 放大编辑`** 可开启全屏专注编辑器（`Ctrl+Enter` 保存 / `Esc` 关闭），底部支持拖拽调整文本框高度。
-   - 在每镜右侧配置独立 9 图参考槽，或切到 **Tab ③ 全局 9 图池** 统一继承。
-   - 按需点击每镜的 **⚔ 武戏流 / 🎭 文戏流** 按钮，工作流将按镜自动互斥路由对应的一采/二采 LoRA 链与步数矩阵。
-4. **整片生成与断点续跑**：
-   - 点击 ComfyUI 右上角 **运行**。每跑完一段立即落盘并入库；若中途中断，重新点击运行会自动跳过已 `VALID` 镜头并从中断镜无缝续跑。
-5. **选片、单段重抽与修缝（Tab ② 选片重抽与修缝）**：
-   - 点击顶部镜号切换镜头，在右侧 **历史版本 (Takes)** 随时试看对比并切换采用版本，废片可一键移入回收站。
-   - 需要单独重抽某镜时，勾选 **启用单段重抽锁定**，选择随机新 Seed 或指定 Seed、可选填微调提示词，按需设置 **尾接下一段（关 / 1帧 / 5帧 / 22帧）** 并保持勾选 **重抽完成后自动重合成片**，然后点击 ComfyUI 右上角 **运行**。
-6. **一键导出总成片**：
-   - 点击节点顶栏 **`🎬 导出成片`**（如有新重抽或换片未同步，会自动高亮提示 **`🎬 导出成片 · 待更新`**），可一键合成/下载最新 `master.mp4` 及达芬奇 `FCPXML` 工程文件。
+   - Or add/edit shots individually on the filmstrip. Click **`⛶ Expand`** on any prompt box to open the viewport-level Focus Prompt Editor (`Ctrl+Enter` to save, `Esc` to close), or drag the bottom resize handle.
+   - Assign up to 9 reference images per shot (or inherit from **Tab ③ Global 9-Image Pool**) and toggle per-shot **Action / Drama** LoRA routing.
+4. **Generate & Resume**: Click **Run**. Each shot archives immediately upon completion; if interrupted, running again automatically skips `VALID` shots and resumes from the exact breakpoint.
+5. **Select Takes & Bidirectional Reroll (Tab ②)**:
+   - Compare historical takes per shot, switch active takes, or send rejected takes safely to the OS recycle bin.
+   - To reroll a single shot cleanly, enable **Single-Shot Reroll Lock**, choose seed mode & optional prompt override, pick **Tail Bridge to Next Shot (`Off / 1f / 5f / 22f`)**, keep **Auto-Reassemble Master** enabled, and click **Run**.
+6. **Export Verified Master**: Click **`Export Master`** in the header (highlights **`Update Needed`** whenever any shot changes) to assemble or download the latest `master.mp4` and DaVinci Resolve `FCPXML`.
 
 ---
 
-## 六、进阶特性详解
+## 6. Technical Deep-Dive
 
-### 1. 双向桥接单段重抽（`0 / 1 / 5 / 22f`）原理
-- **为什么不会引入彩噪污染？**
-  下一段用于尾部锚定的参考帧并非来自旧采样潜空间，而是由 `load_next_shot_head_ref` 直接从下一段**已裁头、已交付的纯净成品 `shots/shot_xxxx_take_yyy.mp4`** 首部实时解码，完全绕开历史彩噪。
-- **档位选择建议**：
-  - `关 (0f)`：纯正向续接，适用于尾镜或后面本身是 `@cut@` 硬切的镜头。
-  - `1帧 / 5帧`（推荐日常首选）：精确锁定收尾构图、光影与人物落点，同时留出充分的动作表演自由度。
-  - `22帧`：强物理连续场景（长镜头平移、复杂动作贯通），可叠加开启 **22f 反向渐进微噪**（接缝 `pos=0` 处严格 `alpha=0.0` 纯净无噪，往尾部渐进最高 `0.25` 防止僵硬），且同步附带留出 2 帧保护带的 32kHz 音频尾锚。
+### Bidirectional Bridge Reroll (`0 / 1 / 5 / 22f`)
+- **Zero Chroma-Noise Contamination**: Unlike raw tail latents from prior sampling passes, `load_next_shot_head_ref` decodes the next shot's anchor frames directly from its **post-trim, delivered `shots/shot_xxxx_take_yyy.mp4`**, guaranteeing clean pixels free of historical `#106` chroma noise.
+- **Mode Guidelines**:
+  - `Off (0f)`: Standard forward continuation (best for the final shot or before an explicit `@cut@`).
+  - `1f / 5f` *(Recommended default)*: Locks ending framing, lighting, and character pose into the next shot while preserving full motion freedom.
+  - `22f`: For strong continuous physical motion across the boundary; optionally enable **Reverse-Taper Noise** (`alpha = 0.0` strictly at seam frame `pos = 0`, tapering mildly up to `0.25` away from the seam to prevent stiffness) alongside a 32 kHz tail audio anchor with a 2-frame left guard band.
 
-### 2. 固定机位 / 数字人防劣化
-- 在不切镜（连续多轮 `@continue@`）场景下，静态背景在多次 VAE 编解码与高强度彩噪叠加后容易产生块状色斑。
-- 可在 **Tab ④ 画幅与体检** 切换防劣化模式，或在条带工具栏使用 **`周期插 @cut@ 清零`** 在乐段/台词停顿处插入硬切以刷新高清参考图锚点。
+### Fixed-Camera Anti-Degradation
+- When chaining many `@continue@` segments without camera cuts (e.g., digital human / talking-head shots), repeated VAE round-trips and strong chroma noise degrade static backgrounds.
+- Use **Tab ④ Anti-Degradation** presets or the strip toolbar's **Periodic `@cut@` Reset** tool to refresh clean reference anchors at natural phrasing/musical pauses.
 
-### 3. 节点面板尺寸与双语切换
-- 面板支持在 `980..1860 × 660..1400` 安全区间内自由拖拽缩放，宽度 `≥ 1380px` 时 Tab ① 自动切换左右双栏高效布局；底部状态栏提供 **`紧凑 / 标准 / 宽屏`** 一键预设与 **`中文 / EN`** 实时切换。
+### Ergonomic Panel Sizing & Bilingual UI
+- Resize the `ShotVaultPlan` node freely within a clamped safe envelope (`980–1860 × 660–1400 px`); widths `≥ 1380 px` automatically unlock a side-by-side Tab ① layout. Use footer presets (`Compact / Standard / Wide`) and the top **`EN / 中文`** toggle anytime.
 
 ---
 
-## 七、常见问题与生产排雷 (FAQ)
+## 7. Troubleshooting & Production FAQ
 
 <details>
-<summary><b>Q1：ComfyUI 开启 Dynamic VRAM 跑多段时，在采样第 0 步闪退并报 <code>tiny_vae.py ... Windows fatal exception: access violation</code>？</b></summary>
+<summary><b>Q1: Crash during multi-shot sampling under ComfyUI Dynamic VRAM with <code>tiny_vae.py ... Windows fatal exception: access violation</code>?</b></summary>
 
-- **原因**：这是 `ComfyUI-KJNodes` 的 `#43 ModelPreviewOverrideKJ` 挂载 `taeh3.safetensors` 对长段执行全帧解码时，与 Dynamic VRAM 高内存暂存叠加触发的底层 C++ 内存访问违例（非 ShotVault 节点报错）。
-- **解决**：直接选中工作流中的 **`#43 ModelPreviewOverrideKJ`** 按 `Ctrl + B` 旁路（Bypass），或清空其 `taeh3.safetensors` 项。**完全不影响最终出片画质**，且能显著降低显存/内存峰值并提速。同时建议系统虚拟内存（页面文件）预留 `64GB+`。
+- **Root Cause**: This crash originates inside `ComfyUI-KJNodes` (`#43 ModelPreviewOverrideKJ` running full-clip `taeh3.safetensors` live preview decode on step 0 while Dynamic VRAM stages ~45 GB of H3 TE + UNET weights), **not** inside ShotVault.
+- **Fix**: Bypass (`Ctrl + B`) node **`#43 ModelPreviewOverrideKJ`** or clear its `taeh3.safetensors` field. Final rendered quality is 100% unaffected, and both memory pressure and step overhead drop significantly. On Windows systems with ≤ 64 GB RAM, set the paging file to `64–96 GB`.
 </details>
 
 <details>
-<summary><b>Q2：为什么单段重抽或重启 ComfyUI 后，之前下载的 <code>master.mp4</code> 还是旧片段？</b></summary>
+<summary><b>Q2: Why did a previously downloaded <code>master.mp4</code> not reflect a newly rerolled take after restarting ComfyUI?</b></summary>
 
-- v5.8 已通过伴生 `.manifest.json` 彻底闭环此问题：只要有任一镜头更换了 Take 或重抽，顶栏按钮会自动亮起 **`🎬 导出成片 · 待更新`**，导出弹窗会列出具体过期镜号并在重新合成前保护旧版下载按钮；同时勾选单段重抽区的 **「重抽完成后自动重合成片」** 即可每次重抽完自动刷新 `master.mp4`。
+- Solved in v5.8 via `.manifest.json` snapshots + file `mtime` fallback. Any take change immediately marks the header button as **`Export Master · Update Needed`**, prevents accidental stale downloads in the Export Modal, and can automatically reassemble `master.mp4` upon single-shot reroll completion.
 </details>
 
 <details>
-<summary><b>Q3：更新代码后前端界面没有变化或按钮错位？</b></summary>
+<summary><b>Q3: UI changes do not appear after pulling a new version?</b></summary>
 
-- 更新后端 Python 后必须**重启 ComfyUI**，并在浏览器按 **`Ctrl + F5`**（Mac 为 `Cmd + Shift + R`）强制清除浏览器 JS 模块缓存。
+- Always **restart ComfyUI** after updating backend Python code and perform a browser hard refresh (**`Ctrl + F5`** / **`Cmd + Shift + R`**) to bust cached ES modules.
 </details>
 
 <details>
-<summary><b>Q4：音频驱动模式（整曲母带切片）为什么自动锁定 39 帧？</b></summary>
+<summary><b>Q4: Why does Master Song Audio-Drive mode lock overlap to 39 frames?</b></summary>
 
-- 音频驱动长片为确保音画零累积漂移，需同时对齐视频 `17k+5` 潜空间网格与 32kHz/40Hz 音频潜空间步长，39 帧为实测最稳妥的跨段音画上下文锁定量，切回常规模式可自由选用 22 帧。
+- Maintaining zero audio/video cumulative drift across long segments requires aligning both H3's `17k+5` video latent grid and 32 kHz/40 Hz audio latent framing; 39 frames is the verified lock point for audio-driven continuations. Switching back to standard mode unlocks 22-frame overlap.
 </details>
 
 ---
 
-## 八、开源协议、作者维权声明与免责条款
+## 8. License, Copyright Protection & Legal Disclaimer
 
-### 1. 开源协议（GNU GPL v3.0）
+### 1. Open-Source License (GNU GPL v3.0)
 
-本项目全部原创源码以 **[GNU General Public License v3.0 (`GPL-3.0-only`)](LICENSE)** 协议开源，与 ComfyUI 主程序协议完全一致。
+All original source code in this repository is licensed under the **[GNU General Public License v3.0 (`GPL-3.0-only`)](LICENSE)** — matching ComfyUI's core license.
 
 > **Copyright © 2026 AchengOoO ([AharaOoO](https://github.com/AharaOoO)). All rights reserved.**
 
-### 2. 版权保护与反盗用/反换皮声明（必读）
+### 2. Attribution, Anti-Plagiarism & Author Rights Protection
 
-我们欢迎个人学习、影视创作、学术研究及遵循 GPL-3.0 协议的社区二次开发；但**坚决反对任何形式的抹除署名、换皮倒卖与闭源包装行为**。依据 `GPL-3.0` 第 4、5、6、8 条及本仓库 [`NOTICE`](NOTICE) 文件规定：
+Personal use, film production, academic research, and GPL-3.0-compliant community forks are warmly welcomed. However, **copyright stripping, rebranding resale ("换皮倒卖"), and closed-source repackaging are strictly prohibited**. Under GPL-3.0 Sections 4, 5, 6, and 8 and the repository [`NOTICE`](NOTICE) file:
 
-1. **必须保留原始署名与来源**：任何形式的二次分发、Fork、一键整合包、云端镜像或衍生节点包，均须在显著位置完整保留原作者版权声明（`Copyright (C) 2026 AchengOoO (AharaOoO)`）及本官方仓库链接（`https://github.com/AharaOoO/ComfyUI-Universal-ShotVault`）。
-2. **禁止闭源商业封装（强传染性条款）**：若你将本项目或包含本项目修改版的衍生代码向第三方分发（包括付费整合包、加密插件、付费客户端内置等），**必须**同样以 `GPL-3.0` 协议向所有获取者公开完整的对应源代码，并明确标注修改记录与日期。
-3. **禁止冒充官方名义**：未经原作者书面授权，不得使用 `ShotVault 官方`、`AchengOoO / AharaOoO 官方` 等名义进行商业宣传、收费代理或误导性分发。
-4. **违约权利自动终止**：任何违反 GPL-3.0 条款（如删改版权头、隐匿源码、冒名转售）的行为，将依据 GPL-3.0 第 8 条自动丧失使用与分发本软件的合法授权；原作者保留依法固定证据、向相关平台发起 DMCA / 侵权下架投诉及追究法律责任的权利。
+1. **Mandatory Attribution**: Every redistribution, fork, integrated launcher pack, cloud image, or derivative node suite must prominently retain `Copyright (C) 2026 AchengOoO (AharaOoO)` and the original repository URL (`https://github.com/AharaOoO/ComfyUI-Universal-ShotVault`).
+2. **Strong Copyleft Enforcement**: Any distributed modification or derivative bundle (including paid installers, encrypted plugins, or bundled commercial tools) **must** be licensed under **GPL-3.0** with complete corresponding source code made available to all recipients and clear modification notices.
+3. **No Official Endorsement / Impersonation**: Do not use "ShotVault Official", "AchengOoO", or "AharaOoO" to imply official endorsement or pass off third-party packs as official releases.
+4. **Automatic License Termination**: Any violation of GPL-3.0 automatically terminates your rights under Section 8. The author reserves all legal remedies, including DMCA takedowns and copyright enforcement.
 
-### 3. 第三方权利与合规声明
+### 3. Third-Party Compliance & Independence
 
-- 本仓库仅包含原作者独立编写的开源代码，**不包含**任何第三方闭源组件、**不附带**任何第三方模型权重或私有素材。
-- 配套社区节点与依赖库的版权及开源协议归各自原作者所有，完整致谢清单详见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。
-- 本项目与 MiniMax、Comfy Org 及任何外部在线视频服务均无隶属、合作或官方背书关系。
+- This repository contains **100% original author-owned source code** and includes **no** copied third-party node repositories, **no** third-party binary weights, and **no** private media assets.
+- All companion community extensions and libraries remain the property of their respective authors; see [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) for full attributions.
+- This project is an independent open-source tool with no affiliation, sponsorship, or endorsement from MiniMax, Comfy Org, or any external online video platform.
 
-### 4. 免责声明
+### 4. Disclaimer
 
-本软件按“现状（AS IS）”提供，不附带任何明示或默示的担保。使用者须自行确保所使用的基础模型、LoRA、参考素材及生成内容的合法性与合规性，因不当使用所产生的一切法律与技术风险由使用者自行承担。
+THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. Users are solely responsible for ensuring that their base models, LoRAs, reference media, prompts, and generated outputs comply with all applicable laws and third-party model licenses.
 
 ---
 
 <div align="center">
 
-如果本项目帮你在长视频制作中省下了大量抽卡与返工时间，欢迎点亮一个 ⭐ **Star** 支持开源维护！
+If ShotVault saves you hours of rerolls and continuity headaches, consider giving it a ⭐ **Star**!
 
 </div>
