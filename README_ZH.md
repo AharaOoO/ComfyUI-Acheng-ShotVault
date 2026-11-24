@@ -104,13 +104,14 @@ pip install -r ComfyUI/custom_nodes/ComfyUI-Acheng-ShotVault/requirements.txt
 2. 解压到 `ComfyUI/custom_nodes/ComfyUI-Acheng-ShotVault`（确保 `__init__.py` 直接位于该目录下）。
 3. 按上方命令补齐依赖，**重启 ComfyUI**，浏览器按 **`Ctrl + F5`** 强制刷新前端脚本。
 
-### 可选：启用 ONNX RIFE 接缝修复加速
+### 已内置 ONNX RIFE 接缝修复模型
 
-本仓库遵循开源合规原则，**不直接附带第三方二进制模型权重**。默认即可使用内置 OpenCV DIS 光流对齐或自动复用你已安装的 `ComfyUI-Frame-Interpolation` 本地 RIFE 权重。
+本仓库已直接内置 MIT 开源许可的轻量级插帧权重 `seam_bridge/models/rife422lite_fp32.onnx`（约 18.5 MB，源自 [Practical-RIFE](https://github.com/hzwer/ECCV2022-RIFE)），只要你的 ComfyUI Python 环境已安装 `onnxruntime`（或 `onnxruntime-gpu`），即可开箱使用 `AchengSeamBridge` / `AchengFuzzPuppyClipMerge` 的 RIFE 接缝修复功能。
 
-如需启用 ONNX RIFE 后端，请安装 `onnxruntime`（或 `onnxruntime-gpu`），并将你本地合法获取的 `rife422lite_fp32.onnx` 放置于以下任一目录：
-- `ComfyUI/custom_nodes/ComfyUI-Acheng-ShotVault/seam_bridge/models/rife422lite_fp32.onnx`
-- `ComfyUI/models/rife/rife422lite_fp32.onnx`
+模型查找顺序：
+- `ComfyUI/custom_nodes/ComfyUI-Acheng-ShotVault/seam_bridge/models/rife422lite_fp32.onnx`（已内置）
+- `ComfyUI/models/rife/rife422lite_fp32.onnx`（可选共享覆盖目录）
+- 已安装的 `ComfyUI-Frame-Interpolation` 本地 `.pth` 权重（自动回退）
 
 ---
 
@@ -232,7 +233,7 @@ pip install -r ComfyUI/custom_nodes/ComfyUI-Acheng-ShotVault/requirements.txt
 
 ### 3. 第三方权利与合规声明
 
-- 本仓库仅包含原作者独立编写的开源代码，**不包含**任何第三方闭源组件、**不附带**任何第三方模型权重或私有素材。
+- 本仓库仅包含原作者独立编写的开源代码以及 MIT 许可的 `seam_bridge/models/rife422lite_fp32.onnx` 轻量插帧权重，**不包含**任何第三方节点仓库源码或私有素材。
 - 配套社区节点与依赖库的版权及开源协议归各自原作者所有，完整致谢清单详见 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)。
 - 本项目与 MiniMax、Comfy Org 及任何外部在线视频服务均无隶属、合作或官方背书关系。
 

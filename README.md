@@ -104,13 +104,14 @@ pip install -r ComfyUI/custom_nodes/ComfyUI-Acheng-ShotVault/requirements.txt
 2. Extract to `ComfyUI/custom_nodes/ComfyUI-Acheng-ShotVault` (ensure `__init__.py` sits directly inside that folder).
 3. Install `requirements.txt`, **restart ComfyUI**, and hard-refresh the browser (**`Ctrl + F5`** / **`Cmd + Shift + R`**).
 
-### Optional: Local ONNX RIFE Backend for Seam Repair
+### Bundled ONNX RIFE Backend for Seam Repair
 
-In strict compliance with open-source licensing, this repository does **not** redistribute third-party binary model weights. Out of the box, `seam_bridge/` uses OpenCV DIS optical-flow alignment or dynamically reuses local RIFE weights from `ComfyUI-Frame-Interpolation` if installed.
+This repository bundles the MIT-licensed lightweight `seam_bridge/models/rife422lite_fp32.onnx` (~18.5 MB, based on [Practical-RIFE](https://github.com/hzwer/ECCV2022-RIFE)) so `AchengSeamBridge` and `AchengFuzzPuppyClipMerge` work out of the box once `onnxruntime` (or `onnxruntime-gpu`) is installed in your ComfyUI Python environment.
 
-To optionally enable the ONNX RIFE backend, install `onnxruntime` (or `onnxruntime-gpu`) and place your locally obtained `rife422lite_fp32.onnx` into either path:
-- `ComfyUI/custom_nodes/ComfyUI-Acheng-ShotVault/seam_bridge/models/rife422lite_fp32.onnx`
-- `ComfyUI/models/rife/rife422lite_fp32.onnx`
+Lookup order:
+- `ComfyUI/custom_nodes/ComfyUI-Acheng-ShotVault/seam_bridge/models/rife422lite_fp32.onnx` (bundled)
+- `ComfyUI/models/rife/rife422lite_fp32.onnx` (optional shared override)
+- Locally installed `ComfyUI-Frame-Interpolation` RIFE VFI `.pth` weights (fallback)
 
 ---
 
@@ -228,7 +229,7 @@ Personal use, film production, academic research, and GPL-3.0-compliant communit
 
 ### 3. Third-Party Compliance & Independence
 
-- This repository contains **100% original author-owned source code** and includes **no** copied third-party node repositories, **no** third-party binary weights, and **no** private media assets.
+- This repository contains original author-owned source code plus the MIT-licensed `seam_bridge/models/rife422lite_fp32.onnx` weight for offline seam repair, and includes **no** copied third-party node repositories and **no** private media assets.
 - All companion community extensions and libraries remain the property of their respective authors; see [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) for full attributions.
 - This project is an independent open-source tool with no affiliation, sponsorship, or endorsement from MiniMax, Comfy Org, or any external online video platform.
 
