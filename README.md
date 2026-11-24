@@ -117,9 +117,21 @@ Lookup order:
 
 ## 4. Example Workflow & External Companion Nodes
 
-A fully sanitized, zero-prompt / zero-reference **H3 Dual-Core (Action & Drama) Example Workflow** is included:
+A fully sanitized, zero-prompt / zero-reference **H3 Tri-Mode (Action · Drama · Dance) 6-Route Dual-Pass Example Workflow** (reset to Regular 22f mode by default, with full bilingual ZH/EN canvas notes) is included:
 
 - [`example_workflows/ShotVault_v5.8_H3_DualCore_Clean_Template.json`](example_workflows/ShotVault_v5.8_H3_DualCore_Clean_Template.json)
+
+### Built-In 6-Route LoRA & 5-Tier Step-Split Architecture
+
+The template includes a **5-tier SplitSigmas dual-pass matrix** and **6 independent LoRA chains** controlled by per-shot Action/Drama flags plus a global **Dance Mode** boolean switch (`#332`, **OFF by default** for zero interference to Action/Drama):
+
+| Mode | Total Steps & Split | Handover Sigma | 1st / 2nd Sampler | LoRA Chain Summary |
+| :--- | :--- | :--- | :--- | :--- |
+| **⚔️ Action (Default)** | `14` (`8 + 6`) | `0.815` (`#129`) | `er_sde` → `lcm` | 1st: Ref2V 8s `0.85` + FL2V 8s `0.50` + Combat V2 `0.65` + Motion Repair `0.50` + Hit-React `0.35` + Speed Slider (`#27`)<br/>2nd: T8 DMAD 4s r39 `0.80` + Combat V2 `0.65` + Motion Repair `0.35` + Hit-React `0.35` + Speed Slider (`#27`) |
+| **⚡ Action (Fast)** | `12` (`6 + 6`) | `0.885` (`#131`) | `er_sde` → `lcm` | Same Action dual-pass chain; enable `武戏_12步档` (`#28`) |
+| **🎭 Drama (Default)** | `12` (`6 + 6`) | `0.885` (`#133`) | `er_sde` → `lcm` | 1st: DMAD 8s Critic `1.00` + Combat V2 `0.60` + ActorPerformance `0.35` + Licon-VBVR `0.45`<br/>2nd: DMAD 4s r39 `1.00` + Combat V2 `0.35` + Licon-VBVR `0.35` |
+| **🚀 Drama (Ultra-Fast)** | `10` (`4 + 6`) | `0.923` (`#135`) | `er_sde` → `lcm` | Same Drama dual-pass chain; enable `文戏_10步档` (`#29`) |
+| **💃 Dance Mode (Optional)** | `14` (`10 + 4`) | `0.690` (`#358`) | `er_sde` → **`er_sde`** | Enable `#332` Dance Mode (OFF by default): 1st Ref2V 8s `0.85` + FL2V 8s `0.50` + DANCE `0.65` + BeatSlider `1.35` + Motion Repair `0.30` + MysticXXX `0.35`; 2nd FL2V 4s v1.2 r64 `1.00` + DANCE `0.65` + BeatSlider `0.35` + Motion Repair `0.30` + MysticXXX `0.35` |
 
 ### External Community Nodes Used by the Example Workflow
 
@@ -154,7 +166,7 @@ All external community extensions remain independent and should be installed fro
      Shot 2 seamless continuation description...
      ```
    - Or add/edit shots individually on the filmstrip. Click **`⛶ Expand`** on any prompt box to open the viewport-level Focus Prompt Editor (`Ctrl+Enter` to save, `Esc` to close), or drag the bottom resize handle.
-   - Assign up to 9 reference images per shot (or inherit from **Tab ③ Global 9-Image Pool**) and toggle per-shot **Action / Drama** LoRA routing.
+   - Assign up to 9 reference images per shot (or inherit from **Tab ③ Global 9-Image Pool**) and toggle per-shot **Action / Drama** LoRA routing (or flip the canvas **Dance Mode** boolean switch `#332` for 10+4-step beat-synced dance MVs).
 4. **Generate & Resume**: Click **Run**. Each shot archives immediately upon completion; if interrupted, running again automatically skips `VALID` shots and resumes from the exact breakpoint.
 5. **Select Takes & Bidirectional Reroll (Tab ②)**:
    - Compare historical takes per shot, switch active takes, or send rejected takes safely to the OS recycle bin.
