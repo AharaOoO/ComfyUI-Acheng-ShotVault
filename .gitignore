@@ -16,8 +16,9 @@ desktop.ini
 .vscode/
 .idea/
 
-# Local model weights & user outputs (never commit binary weights or generated media)
+# Local model weights & user outputs (allow only bundled MIT rife422lite_fp32.onnx)
 seam_bridge/models/*.onnx
+!seam_bridge/models/rife422lite_fp32.onnx
 seam_bridge/models/*.pth
 seam_bridge/models/*.pt
 seam_bridge/models/*.safetensors

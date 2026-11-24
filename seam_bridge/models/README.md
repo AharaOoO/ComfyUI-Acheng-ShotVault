@@ -1,16 +1,13 @@
-# Optional RIFE ONNX Model Directory
+# RIFE ONNX Model Directory
 
-This repository does **not** redistribute third-party binary model weights.
+This directory includes the bundled `rife422lite_fp32.onnx` (~18.5 MB) lightweight frame-interpolation weight (based on [Practical-RIFE](https://github.com/hzwer/ECCV2022-RIFE), MIT License) so `AchengSeamBridge` and `AchengFuzzPuppyClipMerge` work out of the box without requiring external node installations.
 
-`AchengSeamBridge` and `AchengFuzzPuppyClipMerge` work out of the box using:
-1. Locally installed RIFE weights from `ComfyUI-Frame-Interpolation` (if installed), or
-2. Built-in OpenCV DIS optical-flow / local geometric alignment fallback (zero external weights required).
+### Lookup Order
 
-### Optional: Using an ONNX RIFE Model
+At runtime, the engine checks for RIFE backends in the following order:
 
-If you obtain a compatible `rife422lite_fp32.onnx` weight locally under its applicable license, place it in **either** of the following paths:
+1. `ComfyUI/custom_nodes/ComfyUI-Acheng-ShotVault/seam_bridge/models/rife422lite_fp32.onnx` (bundled)
+2. `ComfyUI/models/rife/rife422lite_fp32.onnx` (optional shared override)
+3. Locally installed `ComfyUI-Frame-Interpolation` RIFE VFI `.pth` checkpoints (`rife426.pth`, `rife49.pth`, `rife47.pth`)
 
-- `ComfyUI/custom_nodes/ComfyUI-Acheng-ShotVault/seam_bridge/models/rife422lite_fp32.onnx`
-- `ComfyUI/models/rife/rife422lite_fp32.onnx`
-
-The engine will automatically detect and load it via `onnxruntime` (CUDA or CPU provider) on next run.
+> **Runtime Note:** Ensure `onnxruntime` (or `onnxruntime-gpu` for CUDA acceleration) is installed in your ComfyUI Python environment to execute the ONNX backend.

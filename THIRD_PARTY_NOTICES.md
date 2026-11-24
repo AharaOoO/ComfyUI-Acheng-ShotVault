@@ -1,6 +1,6 @@
 # Third-Party Notices & Attributions
 
-`ComfyUI-Acheng-ShotVault` respects open-source licenses and intellectual property rights. This repository contains **only original author-owned code** and does **not** vendor third-party node repositories or redistribute proprietary binary weights.
+`ComfyUI-Acheng-ShotVault` respects open-source licenses and intellectual property rights. This repository contains original author-owned code plus the MIT-licensed lightweight `rife422lite_fp32.onnx` model weight for out-of-the-box local seam interpolation, and does **not** vendor third-party ComfyUI node repositories or proprietary binary assets.
 
 The example workflow and optional runtime features interoperate with the following independent open-source projects, whose copyrights and licenses belong exclusively to their respective authors:
 
@@ -13,9 +13,9 @@ The example workflow and optional runtime features interoperate with the followi
 | **[ComfyUI-Custom-Scripts](https://github.com/pysssss/ComfyUI-Custom-Scripts)** | pysssss | MIT | External UI companion node (`ShowText|pysssss`) |
 | **[Goohaitools-comfyui](https://github.com/goohai/Goohaitools-comfyui)** | goohai | See upstream | External slider control node (`GoohaiUniversalSlider`) used in example workflow |
 | **comfyui-minimax-h3-audio-T8** | Community contributors | See upstream | External MiniMax H3 LoRA compatibility & semantic bridge nodes used in example workflow |
-| **[ComfyUI-Frame-Interpolation](https://github.com/Fannovel16/ComfyUI-Frame-Interpolation)** & **[Practical-RIFE](https://github.com/hzwer/ECCV2022-RIFE)** | Fannovel16 / hzwer (Megvii) | MIT | Optional local RIFE interpolation backend discovered dynamically if installed by the user |
+| **[ComfyUI-Frame-Interpolation](https://github.com/Fannovel16/ComfyUI-Frame-Interpolation)** & **[Practical-RIFE](https://github.com/hzwer/ECCV2022-RIFE)** | Fannovel16 / hzwer (Megvii) | MIT | Optional local `.pth` RIFE backend; bundled `seam_bridge/models/rife422lite_fp32.onnx` is derived from MIT-licensed Practical-RIFE v4.22 lite |
 | **PyTorch / NumPy / OpenCV / PyAV / safetensors / Pillow / send2trash / ONNX Runtime** | Respective upstream teams | BSD / Apache-2.0 / MIT | Standard Python libraries declared in `requirements.txt` |
 
 ### Clean-Room Implementation Statement (`seam_bridge/`)
 
-The `seam_bridge/` module (`AchengSeamBridge`, `AchengFuzzPuppyClipMerge`, and `fuzzpuppy_engine.py`) is an independent local Python/OpenCV/ONNX implementation written from scratch for local ComfyUI pipelines. It contains **zero** copied code, **zero** web service assets, **zero** telemetry/network uploads, and **zero** bundled third-party model weights. Any technical terminology referencing public clip-merge concepts is strictly descriptive of local optical-flow / color-alignment / frame-bridging algorithms and implies no affiliation with or endorsement by any external service.
+The `seam_bridge/` module (`AchengSeamBridge`, `AchengFuzzPuppyClipMerge`, and `fuzzpuppy_engine.py`) is an independent local Python/OpenCV/ONNX implementation written from scratch for local ComfyUI pipelines. It contains **zero** copied third-party node code, **zero** web service assets, and **zero** telemetry/network uploads; `seam_bridge/models/rife422lite_fp32.onnx` is bundled solely for local offline frame interpolation under the Practical-RIFE MIT License. Any technical terminology referencing public clip-merge concepts is strictly descriptive of local optical-flow / color-alignment / frame-bridging algorithms and implies no affiliation with or endorsement by any external service.
