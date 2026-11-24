@@ -1270,6 +1270,11 @@
           "widget_ue_connectable": {},
           "version": "7.7",
           "input_ue_unconnectable": {}
+        },
+        "ttNbgOverride": {
+          "color": "#223",
+          "bgcolor": "#335",
+          "groupcolor": "#88A"
         }
       },
       "widgets_values": [
@@ -1277,7 +1282,9 @@
       ],
       "widgets_values_named": {
         "Constant": "H3_预览帧数"
-      }
+      },
+      "color": "#223",
+      "bgcolor": "#335"
     },
     {
       "id": 37,
@@ -1445,10 +1452,10 @@
         }
       },
       "widgets_values": [
-        "### 导演与采样\n\n- 此工作流按 24 fps 使用，勿只改导演台或封装器其中一处。常规默认 22 帧重叠；8 秒续段生成 226 帧，裁头后净留 204 帧。\n- 武戏 14/12 步分别 8+6 / 7+5；文戏 12/10 步分别 7+5 / 5+5。\n- 二采沿用第一个阶段输出；同段双采共享头部引导。KJ 预览请求帧数为本计划上限，不是逐段重新设置。\n- Run 前确认输出空间。长片逐轮累计预览会重复写出此前片段。"
+        "### 导演与采样\n\n- 此工作流按 24 fps 使用，勿只改导演台或封装器其中一处。常规默认 22 帧重叠；8 秒续段生成 226 帧，裁头后净留 204 帧。\n- 武戏 14/12 步分别 8+6 / 6+6；文戏 12/10 步分别 6+6 / 4+6。\n- 二采沿用第一个阶段输出；同段双采共享头部引导。KJ 预览请求帧数为本计划上限，不是逐段重新设置。\n- Run 前确认输出空间。长片逐轮累计预览会重复写出此前片段。"
       ],
       "widgets_values_named": {
-        "text": "### 导演与采样\n\n- 此工作流按 24 fps 使用，勿只改导演台或封装器其中一处。常规默认 22 帧重叠；8 秒续段生成 226 帧，裁头后净留 204 帧。\n- 武戏 14/12 步分别 8+6 / 7+5；文戏 12/10 步分别 7+5 / 5+5。\n- 二采沿用第一个阶段输出；同段双采共享头部引导。KJ 预览请求帧数为本计划上限，不是逐段重新设置。\n- Run 前确认输出空间。长片逐轮累计预览会重复写出此前片段。"
+        "text": "### 导演与采样\n\n- 此工作流按 24 fps 使用，勿只改导演台或封装器其中一处。常规默认 22 帧重叠；8 秒续段生成 226 帧，裁头后净留 204 帧。\n- 武戏 14/12 步分别 8+6 / 6+6；文戏 12/10 步分别 6+6 / 4+6。\n- 二采沿用第一个阶段输出；同段双采共享头部引导。KJ 预览请求帧数为本计划上限，不是逐段重新设置。\n- Run 前确认输出空间。长片逐轮累计预览会重复写出此前片段。"
       },
       "color": "#1d3638",
       "bgcolor": "#254245"
@@ -1531,6 +1538,11 @@
           "widget_ue_connectable": {},
           "version": "7.7",
           "input_ue_unconnectable": {}
+        },
+        "ttNbgOverride": {
+          "color": "#223",
+          "bgcolor": "#335",
+          "groupcolor": "#88A"
         }
       },
       "widgets_values": [
@@ -1538,7 +1550,9 @@
       ],
       "widgets_values_named": {
         "Constant": "H3_预览帧数"
-      }
+      },
+      "color": "#223",
+      "bgcolor": "#335"
     },
     {
       "id": 43,
@@ -2061,8 +2075,8 @@
       "id": 57,
       "type": "LoraLoaderModelOnly",
       "pos": [
-        6959.182792502441,
-        688.3379247015603
+        6984.894650956868,
+        690.0469445420068
       ],
       "size": [
         365,
@@ -2638,6 +2652,11 @@
           "widget_ue_connectable": {},
           "version": "7.7",
           "input_ue_unconnectable": {}
+        },
+        "ttNbgOverride": {
+          "color": "#223",
+          "bgcolor": "#335",
+          "groupcolor": "#88A"
         }
       },
       "widgets_values": [
@@ -2645,7 +2664,9 @@
       ],
       "widgets_values_named": {
         "Constant": "导演计划管线"
-      }
+      },
+      "color": "#223",
+      "bgcolor": "#335"
     },
     {
       "id": 73,
@@ -9501,12 +9522,6 @@
           "input_ue_unconnectable": {}
         }
       },
-      "widgets_values": [
-        ""
-      ],
-      "widgets_values_named": {
-        "text_0": ""
-      },
       "color": "#223",
       "bgcolor": "#335"
     },
@@ -10171,12 +10186,6 @@
           "input_ue_unconnectable": {}
         }
       },
-      "widgets_values": [
-        ""
-      ],
-      "widgets_values_named": {
-        "text_0": ""
-      },
       "color": "#223",
       "bgcolor": "#335"
     },
@@ -10447,12 +10456,6 @@
           "version": "7.7",
           "input_ue_unconnectable": {}
         }
-      },
-      "widgets_values": [
-        ""
-      ],
-      "widgets_values_named": {
-        "text_0": ""
       },
       "color": "#223",
       "bgcolor": "#335"
@@ -10882,7 +10885,7 @@
         1535
       ],
       "size": [
-        140.0390625,
+        170.0390625,
         30
       ],
       "flags": {
@@ -10893,7 +10896,7 @@
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "武戏 12 步",
+      "title": "切武戏 12 步",
       "properties": {
         "fontSize": 30,
         "fontFamily": "Arial",
@@ -10921,7 +10924,7 @@
         1705
       ],
       "size": [
-        140.0390625,
+        170.0390625,
         30
       ],
       "flags": {
@@ -10932,7 +10935,7 @@
       "mode": 0,
       "inputs": [],
       "outputs": [],
-      "title": "文戏 10 步",
+      "title": "切文戏 10 步",
       "properties": {
         "fontSize": 30,
         "fontFamily": "Arial",
@@ -11152,7 +11155,7 @@
         3040
       ],
       "size": [
-        140,
+        120,
         30
       ],
       "flags": {
@@ -11191,7 +11194,7 @@
         2595
       ],
       "size": [
-        140,
+        120,
         30
       ],
       "flags": {
@@ -11435,6 +11438,11 @@
           "widget_ue_connectable": {},
           "version": "7.7",
           "input_ue_unconnectable": {}
+        },
+        "ttNbgOverride": {
+          "color": "#223",
+          "bgcolor": "#335",
+          "groupcolor": "#88A"
         }
       },
       "widgets_values": [
@@ -11442,7 +11450,9 @@
       ],
       "widgets_values_named": {
         "Constant": "导演计划管线"
-      }
+      },
+      "color": "#223",
+      "bgcolor": "#335"
     },
     {
       "id": 239,
@@ -13850,7 +13860,7 @@
       "id": 291,
       "type": "LoraLoaderModelOnly",
       "pos": [
-        7912.195506295062,
+        7905.1732680803925,
         688.9046305647797
       ],
       "size": [
@@ -13997,8 +14007,8 @@
       "id": 295,
       "type": "LoraLoaderModelOnly",
       "pos": [
-        7436.933853164964,
-        689.9302130898578
+        7439.8556597266315,
+        688.768068256909
       ],
       "size": [
         365,
@@ -14035,11 +14045,11 @@
       },
       "widgets_values": [
         "minimax H3\\H3真实质感影帝表演.safetensors",
-        0.65
+        0.35
       ],
       "widgets_values_named": {
         "lora_name": "minimax H3\\H3真实质感影帝表演.safetensors",
-        "strength_model": 0.65
+        "strength_model": 0.35
       },
       "color": "#223",
       "bgcolor": "#335"
@@ -14394,6 +14404,11 @@
           "widget_ue_connectable": {},
           "version": "7.7",
           "input_ue_unconnectable": {}
+        },
+        "ttNbgOverride": {
+          "color": "#223",
+          "bgcolor": "#335",
+          "groupcolor": "#88A"
         }
       },
       "widgets_values": [
@@ -14401,7 +14416,9 @@
       ],
       "widgets_values_named": {
         "Constant": "导演计划管线"
-      }
+      },
+      "color": "#223",
+      "bgcolor": "#335"
     },
     {
       "id": 304,
@@ -14542,6 +14559,11 @@
           "widget_ue_connectable": {},
           "version": "7.7",
           "input_ue_unconnectable": {}
+        },
+        "ttNbgOverride": {
+          "color": "#223",
+          "bgcolor": "#335",
+          "groupcolor": "#88A"
         }
       },
       "widgets_values": [
@@ -14549,7 +14571,9 @@
       ],
       "widgets_values_named": {
         "Constant": "H3_预览帧数"
-      }
+      },
+      "color": "#223",
+      "bgcolor": "#335"
     },
     {
       "id": 307,
@@ -14746,13 +14770,13 @@
       },
       "widgets_values": [
         "minimax H3\\minimax_h3_dmad_full_dareties_v4_step600_comfy_fro.safetensors",
-        0.9,
+        0.8,
         "legacy_tensor_only",
         "legacy"
       ],
       "widgets_values_named": {
         "lora_name": "minimax H3\\minimax_h3_dmad_full_dareties_v4_step600_comfy_fro.safetensors",
-        "strength_model": 0.9,
+        "strength_model": 0.8,
         "file_alpha_policy": "legacy_tensor_only",
         "prefix_policy": "legacy"
       },
@@ -16751,10 +16775,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.5445000000000011,
+      "scale": 0.7972024500000063,
       "offset": [
-        -816.046768900225,
-        427.94498294967957
+        -6518.110804345386,
+        118.09901659803407
       ]
     },
     "ue_links": [],
