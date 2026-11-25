@@ -21,9 +21,9 @@ for p in (COMFY_ROOT, CUSTOM_NODES_DIR):
     if p not in sys.path:
         sys.path.insert(0, p)
 
-sv_pkg = importlib.import_module("ComfyUI-Universal-ShotVault")
-parser_mod = importlib.import_module("ComfyUI-Universal-ShotVault.core.script_parser")
-color_mod = importlib.import_module("ComfyUI-Universal-ShotVault.core.seam_and_color")
+sv_pkg = importlib.import_module("ComfyUI-Acheng-ShotVault")
+parser_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.core.script_parser")
+color_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.core.seam_and_color")
 
 
 def _write_wav(path: str, amp: float, dur_sec: float = 3.0, sr: int = 48000):
@@ -239,7 +239,7 @@ class TestPhase7Audio39Lock1114RegexAndRerollAudit(unittest.TestCase):
     def test_loop_dispatch_loads_shot0_seed_context(self):
         plan_cls = sv_pkg.NODE_CLASS_MAPPINGS["ShotVaultPlan"]()
         disp_cls = sv_pkg.NODE_CLASS_MAPPINGS["ShotVaultLoopDispatch"]()
-        qc_mod = importlib.import_module("ComfyUI-Universal-ShotVault.core.seam_qc")
+        qc_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.core.seam_qc")
 
         with tempfile.TemporaryDirectory() as tmp:
             in_dir = os.path.join(tmp, "in")
@@ -251,7 +251,7 @@ class TestPhase7Audio39Lock1114RegexAndRerollAudit(unittest.TestCase):
             qc_mod.write_mp4_with_pcm(torch.rand((40, 64, 64, 3)), aud_48k, 48000, 24, seed_mp4)
 
             with patch("folder_paths.get_input_directory", return_value=in_dir), patch("folder_paths.get_output_directory", return_value=out_dir):
-                asset_mod = importlib.import_module("ComfyUI-Universal-ShotVault.core.asset_and_turnaround")
+                asset_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.core.asset_and_turnaround")
                 ref_loaded = asset_mod._load_video_frames_and_audio(seed_mp4, target_fps=24, max_frames=40)
                 self.assertIsNotNone(ref_loaded["audio"])
                 self.assertGreater(float(ref_loaded["audio"]["waveform"].abs().max().item()), 0.05)

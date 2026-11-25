@@ -9,7 +9,7 @@
 </p>
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Release](https://img.shields.io/badge/Release-v5.8.2-emerald.svg)](https://github.com/AharaOoO/ComfyUI-Acheng-ShotVault/releases)
+[![Release](https://img.shields.io/badge/Release-v5.8.3-emerald.svg)](https://github.com/AharaOoO/ComfyUI-Acheng-ShotVault/releases)
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-Custom%20Nodes-orange.svg)](https://github.com/comfyanonymous/ComfyUI)
 [![Python](https://img.shields.io/badge/Python-%E2%89%A53.10-3776AB.svg)](https://www.python.org/)
 
@@ -69,10 +69,10 @@ flowchart LR
 | `ShotVaultPlan` | **ShotVault Plan (可视化分镜规划/音轨编排)** | 主控分镜规划节点，内置交互式 Web 面板，输出 `shot_pipe`、`total_shots`、`plan_summary_json` |
 | `ShotVaultLoopDispatch` | **ShotVault Loop Dispatch (循环调度与双向取帧)** | 配合 `forLoop` 逐镜派发提示词、Seed、参考图、上一段尾上下文与下一段纯净首部锚点；支持断点跳过已有效镜头与单段定向锁镜 |
 | `ShotVaultH3Conditioning` | **ShotVault H3 Conditioning (H3 多模态条件封装)** | 严格按当前镜头的 9 图槽位与音频参考动态构建 H3 条件 |
-| `ShotVaultWindowGuider` | **ShotVault Window Guider (双采上下文窗口引导)** | 支持一采/二采共享头部与尾部潜变量缓存、超长段上下文窗口切分、双向尾锚注入与反向渐进微噪 |
+| `ShotVaultWindowGuider` | **ShotVault Window Guider (双采上下文窗口引导)** | 管理一采/二采共享头尾潜空间缓存、双向尾锚注入与反向渐进微噪；默认 `window_mode=off` 走 H3 原生全长单窗（支持 15s/25s/30s+ 零重复），低显存手动开启滑窗时内置全局 RoPE 偏移与高噪步去伪锚 |
 | `ShotVaultSeamTrim` | **ShotVault Seam Trim (精确裁头与 Lab 线性锁色)** | 按 `22f / 39f / 56f` 精准裁切重叠引导区，并执行 CIE Lab MKL 线性色彩锁定与接缝质检 |
-| `ShotVaultSave` | **ShotVault Save (分镜入库与自动重合)** | 原子保存单镜 MP4、缩略图、接缝对比预览与 `.h3ctx.safetensors` 上下文；更新血缘 DAG 并支持单段重抽后自动刷新总成片 |
-| `ShotVaultAssemble` | **ShotVault Assemble (总成片单遍无漂移封装)** | 零音画漂移单遍 PCM/AAC 封装完整 `master.mp4`、`.manifest.json` 同步清单与达芬奇 `FCPXML` 时间线 |
+| `ShotVaultSave` | **ShotVault Save (分镜入库与自动重合)** | 原子保存单镜 MP4（全流程单遍 H.264 编码）并零重编输出 `video` 端口供下游预览/合并，同步写缩略图、接缝对比预览与 `.h3ctx.safetensors`；更新血缘 DAG 并支持单段重抽自动刷新总成片 |
+| `ShotVaultAssemble` | **ShotVault Assemble (总成片单遍无漂移封装)** | 零音画漂移单遍 PCM/AAC 封装完整 `master.mp4`（单段无偏移走 `< 0.05s` 原子直拷快路径）、`.manifest.json` 同步清单、达芬奇 `FCPXML` 与 `master_video` 端口 |
 | `ShotVaultLoad` | **ShotVault Load (已存镜头读取)** | 按工程名与镜号直接读取已归档的指定 Take 视频与上下文 |
 | `AchengSeamBridge` | **Acheng Seam Bridge · 接缝修复** | 生成后/编码前局部单点接缝修复（支持 `off / auto / align_color / flow / rife`），内置硬切保护 |
 | `AchengFuzzPuppyClipMerge` | **Acheng FuzzPuppy Clip Merge · 视频无缝合并** | 替代原生 `ConcatenateVideo`：仅解码相邻两段边界，历史已合并视频零重编码流拷贝，并支持与 `shot_pipe` 修缝开关联动 |

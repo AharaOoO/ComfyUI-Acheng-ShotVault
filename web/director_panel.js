@@ -378,22 +378,30 @@ function attachPanelController(node) {
     const inp = (node.inputs || []).find((x) => x.name === "master_audio_in");
     if (!inp || inp.link == null) return false;
     let cur = inp.link;
-    for (let hop = 0; hop < 8 && cur != null; hop++) {
+    const seen = new Set();
+    for (let hop = 0; hop < 12 && cur != null; hop++) {
+      if (seen.has(cur)) return false;
+      seen.add(cur);
       const lk = findGraphLink(cur);
       const oid = Array.isArray(lk) ? lk[1] : lk?.origin_id;
       const src = findGraphNode(oid);
       if (!src) return false;
+      if (Number(src.mode || 0) !== 0) return false;
       const cls = src.comfyClass || src.type || "";
       if (cls === "GetNode") {
-        const bus = String(src.widgets_values?.[0] || "");
+        const bus = String(src.widgets?.[0]?.value ?? src.widgets_values?.[0] ?? "");
         const setter = (app.graph?._nodes || []).find(
-          (n) => n && (n.comfyClass === "SetNode" || n.type === "SetNode") && String(n.widgets_values?.[0] || "") === bus,
+          (n) => n && (n.comfyClass === "SetNode" || n.type === "SetNode") && String(n.widgets?.[0]?.value ?? n.widgets_values?.[0] ?? "") === bus,
         );
-        if (!setter) return false;
+        if (!setter || Number(setter.mode || 0) !== 0) return false;
         cur = setter.inputs?.[0]?.link ?? null;
         continue;
       }
-      return Number(src.mode || 0) === 0;
+      if (cls === "Reroute" || cls === "RerouteNode") {
+        cur = src.inputs?.[0]?.link ?? null;
+        continue;
+      }
+      return true;
     }
     return false;
   };
@@ -2437,6 +2445,8 @@ function attachPanelController(node) {
   function reloadFromWidgets() {
     hideNativeWidgets(node);
     state.plan = buildPlanFromWidgets();
+    setW("audio_drive_mode", state.plan.audio_drive_mode);
+    setW("context_frames", String(state.plan.context_frames));
     state.masterExpanded = state.plan.shots.length <= 1;
     state.sel = Math.max(0, Math.min(state.sel, state.plan.shots.length - 1));
     syncResponsiveFromNode();
@@ -2491,18 +2501,20 @@ app.registerExtension({
     };
     const origCfg = node.onConfigure;
     node.onConfigure = function (...args) {
+      this._svHydrating = true;
       const r = origCfg?.apply(this, args);
       hideNativeWidgets(this);
       setTimeout(() => {
         hideNativeWidgets(this);
         this._svCtrl?.reloadFromWidgets?.();
+        this._svHydrating = false;
       }, 0);
       return r;
     };
     const origConn = node.onConnectionsChange;
     node.onConnectionsChange = function (type, index, connected, ...rest) {
       const r = origConn?.apply(this, [type, index, connected, ...rest]);
-      if (type === 1 && index === 0 && connected && this._svCtrl?.state?.plan?.audio_drive_mode === "none" && this._svCtrl?.isUpstreamAudioActive?.()) {
+      if (!this._svHydrating && type === 1 && index === 0 && connected && this._svCtrl?.state?.plan?.audio_drive_mode === "none" && this._svCtrl?.isUpstreamAudioActive?.()) {
         this._svCtrl.state.plan.audio_drive_mode = "master_song_slice";
         this._svCtrl.state.plan.context_frames = 39;
         this._svCtrl.serializePlan();

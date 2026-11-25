@@ -17,13 +17,13 @@ for p in (COMFY_ROOT, CUSTOM_NODES_DIR):
     if p not in sys.path:
         sys.path.insert(0, p)
 
-sv_pkg = importlib.import_module("ComfyUI-Universal-ShotVault")
-cw_mod = importlib.import_module("ComfyUI-Universal-ShotVault.core.context_window_guider")
-grid_math = importlib.import_module("ComfyUI-Universal-ShotVault.core.grid_math")
-asset_mod = importlib.import_module("ComfyUI-Universal-ShotVault.core.asset_and_turnaround")
-dag_mod = importlib.import_module("ComfyUI-Universal-ShotVault.core.lineage_dag")
-srv_mod = importlib.import_module("ComfyUI-Universal-ShotVault.server_routes")
-vs_mod = importlib.import_module("ComfyUI-Universal-ShotVault.core.vault_store")
+sv_pkg = importlib.import_module("ComfyUI-Acheng-ShotVault")
+cw_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.core.context_window_guider")
+grid_math = importlib.import_module("ComfyUI-Acheng-ShotVault.core.grid_math")
+asset_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.core.asset_and_turnaround")
+dag_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.core.lineage_dag")
+srv_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.server_routes")
+vs_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.core.vault_store")
 
 import comfy.model_base  # type: ignore
 import comfy.model_patcher  # type: ignore
@@ -181,13 +181,13 @@ class TestPhase4AuditRegressions(unittest.TestCase):
                 pipe0, _, _ = plan_n.plan("DeferProj", "auto", "c", "& 1.5 &\na\n===\n& 1.5 &\nb", "16:9 (1344x768)", 0.25, 24, "cumulative_cursor", "22")
                 p1, *_ = load_n.load_shot(pipe0, "sequence_auto", "1", "auto_latent_first", "fixed", 1, "", 0.0)
                 sv1 = save_n.save_take(torch.rand((36, 64, 64, 3)), p1, auto_queue_next=False, crf=20, codec="h264")
-                m1, _, rep1 = asm_n.assemble("DeferProj", "defer_until_complete", "auto_prefer_reference", 15.0, 0.0, True, True, shot_pipe=sv1["result"][2])["result"]
+                m1, _, rep1, _ = asm_n.assemble("DeferProj", "defer_until_complete", "auto_prefer_reference", 15.0, 0.0, True, True, shot_pipe=sv1["result"][2])["result"]
                 self.assertEqual(m1, "")
                 self.assertEqual(json.loads(rep1)["status"], "deferred")
 
                 p2, *_ = load_n.load_shot(pipe0, "sequence_auto", "1", "auto_latent_first", "fixed", 2, "", 0.0)
                 sv2 = save_n.save_take(torch.rand((36, 64, 64, 3)), p2, auto_queue_next=False, crf=20, codec="h264")
-                m2, fc2, _ = asm_n.assemble("DeferProj", "defer_until_complete", "auto_prefer_reference", 15.0, 0.0, True, True, shot_pipe=sv2["result"][2])["result"]
+                m2, fc2, _, _ = asm_n.assemble("DeferProj", "defer_until_complete", "auto_prefer_reference", 15.0, 0.0, True, True, shot_pipe=sv2["result"][2])["result"]
                 self.assertTrue(os.path.isfile(m2))
                 self.assertTrue(os.path.isfile(fc2))
 

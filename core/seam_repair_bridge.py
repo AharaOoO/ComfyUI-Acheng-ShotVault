@@ -28,15 +28,11 @@ def _load_fuzzpuppy_engine():
     if _FP_ENGINE_MOD is not None:
         return _FP_ENGINE_MOD
     this_dir = os.path.dirname(os.path.abspath(__file__))
-    repo_root = os.path.dirname(this_dir)
-    custom_nodes_dir = os.path.dirname(repo_root)
-    candidates = [
-        os.path.join(repo_root, "seam_bridge", "fuzzpuppy_engine.py"),
-        os.path.join(custom_nodes_dir, "ComfyUI-Acheng-SeamBridge", "fuzzpuppy_engine.py"),
-    ]
-    engine_py = next((p for p in candidates if os.path.isfile(p)), "")
-    if not engine_py:
-        raise FileNotFoundError(f"SeamBridge engine not found in any of: {candidates}")
+    custom_nodes_dir = os.path.dirname(os.path.dirname(this_dir))
+    seam_pkg = os.path.join(custom_nodes_dir, "ComfyUI-Acheng-SeamBridge")
+    engine_py = os.path.join(seam_pkg, "fuzzpuppy_engine.py")
+    if not os.path.isfile(engine_py):
+        raise FileNotFoundError(f"ComfyUI-Acheng-SeamBridge engine not found at {engine_py}")
     spec = importlib.util.spec_from_file_location("acheng_seambridge_fuzzpuppy_engine", engine_py)
     if spec is None or spec.loader is None:
         raise RuntimeError(f"Unable to load fuzzpuppy_engine from {engine_py}")
@@ -139,10 +135,19 @@ def _resolve_prev_and_curr_paths(
     if not os.path.isfile(curr_abs):
         raise FileNotFoundError(f"Current take video not found: {curr_abs}")
 
-    # Prefer explicit parent_take_id; fall back to previous shot's active take or shot 0 seed
-    prev_tid = str(curr_meta.get("parent_take_id") or "")
+    # Prefer previous shot's active take (matching ShotVaultAssemble) before falling back to historical parent_take_id / seed
     prev_abs = ""
-    if prev_tid:
+    if int(shot_index) > 1:
+        prev_rec = shots.get(str(int(shot_index) - 1)) or {}
+        p_act = str(prev_rec.get("active_take_id") or "")
+        if p_act:
+            pm = (prev_rec.get("takes") or {}).get(p_act) or {}
+            cand = ensure_inside_root(store.project_root, str(pm.get("video_rel_path") or f"shots/{p_act}.mp4"))
+            if os.path.isfile(cand):
+                prev_abs = cand
+
+    prev_tid = str(curr_meta.get("parent_take_id") or "")
+    if not prev_abs and prev_tid:
         for srec in shots.values():
             pm = (srec.get("takes") or {}).get(prev_tid)
             if pm:
@@ -157,14 +162,6 @@ def _resolve_prev_and_curr_paths(
                 if os.path.isfile(cand):
                     prev_abs = cand
 
-    if not prev_abs and int(shot_index) > 1:
-        prev_rec = shots.get(str(int(shot_index) - 1)) or {}
-        p_act = str(prev_rec.get("active_take_id") or "")
-        if p_act:
-            pm = (prev_rec.get("takes") or {}).get(p_act) or {}
-            cand = ensure_inside_root(store.project_root, str(pm.get("video_rel_path") or f"shots/{p_act}.mp4"))
-            if os.path.isfile(cand):
-                prev_abs = cand
     if not prev_abs and int(shot_index) == 1:
         seed = proj.get("seed_shot") or {}
         if seed.get("take_id"):
@@ -175,6 +172,22 @@ def _resolve_prev_and_curr_paths(
     if not prev_abs:
         raise ValueError(f"Shot #{shot_index} has no preceding clip to build a seam repair.")
     return prev_abs, curr_abs, curr_tid, fps
+
+
+def _align_frames_u8_to_target(frames_src: np.ndarray, target_h: int, target_w: int) -> np.ndarray:
+    """Resize `[N, H, W, 3]` uint8 frames to `(target_h, target_w)` when adjacent takes differ in resolution."""
+    if frames_src.ndim != 4 or (int(frames_src.shape[1]) == int(target_h) and int(frames_src.shape[2]) == int(target_w)):
+        return frames_src
+    try:
+        import cv2  # type: ignore
+
+        interp = cv2.INTER_AREA if (frames_src.shape[1] > target_h and frames_src.shape[2] > target_w) else cv2.INTER_CUBIC
+        resized = [cv2.resize(fr, (int(target_w), int(target_h)), interpolation=interp) for fr in frames_src]
+        return np.ascontiguousarray(np.stack(resized, axis=0), dtype=np.uint8)
+    except Exception:
+        t = torch.from_numpy(frames_src).permute(0, 3, 1, 2).float()
+        out = torch.nn.functional.interpolate(t, size=(int(target_h), int(target_w)), mode="bicubic", align_corners=False)
+        return np.ascontiguousarray(out.clamp(0.0, 255.0).round().to(torch.uint8).permute(0, 2, 3, 1).numpy())
 
 
 def repair_shot_seam_preview(
@@ -199,6 +212,8 @@ def repair_shot_seam_preview(
     n_head = max(36, int(round(2.0 * fps_proj)))
     frames_a, aud_a, fps_a = _decode_mp4_frames_and_audio(prev_abs, from_end_frames=n_tail)
     frames_b, aud_b, _ = _decode_mp4_frames_and_audio(curr_abs, from_start_frames=n_head)
+    if frames_a.shape[1:3] != frames_b.shape[1:3]:
+        frames_a = _align_frames_u8_to_target(frames_a, int(frames_b.shape[1]), int(frames_b.shape[2]))
     fps_val = fps_a if fps_a >= 12.0 else float(fps_proj)
 
     # Compute baseline original QC on un-repaired seam for honest side-by-side comparison
@@ -263,6 +278,8 @@ def apply_repaired_seam_to_clip_pair(
     fp_eng = _load_fuzzpuppy_engine()
     frames_a, aud_a, fps_a = _decode_mp4_frames_and_audio(clip_a_path)
     frames_b, aud_b, _ = _decode_mp4_frames_and_audio(clip_b_path)
+    if frames_a.shape[1:3] != frames_b.shape[1:3]:
+        frames_a = _align_frames_u8_to_target(frames_a, int(frames_b.shape[1]), int(frames_b.shape[2]))
     fps_val = fps_a if fps_a >= 12.0 else float(fps)
 
     out_frames_u8, out_audio_np, report = fp_eng.merge_clips_fuzzpuppy(

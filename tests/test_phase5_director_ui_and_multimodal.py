@@ -20,13 +20,13 @@ for p in (COMFY_ROOT, CUSTOM_NODES_DIR):
     if p not in sys.path:
         sys.path.insert(0, p)
 
-sv_pkg = importlib.import_module("ComfyUI-Universal-ShotVault")
-grid_math = importlib.import_module("ComfyUI-Universal-ShotVault.core.grid_math")
-parser_mod = importlib.import_module("ComfyUI-Universal-ShotVault.core.script_parser")
-qc_mod = importlib.import_module("ComfyUI-Universal-ShotVault.core.seam_qc")
-seed_mod = importlib.import_module("ComfyUI-Universal-ShotVault.core.seed_video_ingest")
-vs_mod = importlib.import_module("ComfyUI-Universal-ShotVault.core.vault_store")
-srv_mod = importlib.import_module("ComfyUI-Universal-ShotVault.server_routes")
+sv_pkg = importlib.import_module("ComfyUI-Acheng-ShotVault")
+grid_math = importlib.import_module("ComfyUI-Acheng-ShotVault.core.grid_math")
+parser_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.core.script_parser")
+qc_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.core.seam_qc")
+seed_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.core.seed_video_ingest")
+vs_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.core.vault_store")
+srv_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.server_routes")
 
 
 class _CaptureClip:

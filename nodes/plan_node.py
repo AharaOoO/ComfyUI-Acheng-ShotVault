@@ -200,10 +200,11 @@ class ShotVaultPlan:
         default_dur_cfg = float(global_refs_cfg.get("default_duration_sec") or 5.0)
         has_ui_audio_key = isinstance(global_refs_cfg, dict) and ("audio_drive_mode" in global_refs_cfg)
         ui_audio_mode = str(global_refs_cfg.get("audio_drive_mode") or "").strip()
-        effective_audio_mode = audio_drive_mode if audio_drive_mode != "none" else (
-            ui_audio_mode if ui_audio_mode in ("per_shot_audio_dir", "master_song_slice") else "none"
-        )
-        explicit_regular_mode = (audio_drive_mode == "none" and has_ui_audio_key and ui_audio_mode == "none")
+        if has_ui_audio_key and ui_audio_mode in ("none", "per_shot_audio_dir", "master_song_slice"):
+            effective_audio_mode = ui_audio_mode
+        else:
+            effective_audio_mode = audio_drive_mode if audio_drive_mode in ("per_shot_audio_dir", "master_song_slice") else "none"
+        explicit_regular_mode = (effective_audio_mode == "none" and has_ui_audio_key and ui_audio_mode == "none")
 
         if director_shots:
             shots = director_shots

@@ -1950,10 +1950,10 @@
         }
       },
       "widgets_values": [
-        "### 导演与采样 / Planner & Sampling Guide\n\n**中文**：\n- 全流程锁定 `24 fps`（勿只改导演台或封装器单处）。常规默认 `22` 帧重叠，`zero_tail_trim` 下 8 秒续段生成 `226` 帧，裁头后净留 `204` 帧。\n- **步数拆分**：武戏 `14 / 12` 步分别为 **`8+6` / `6+6`**；文戏 `12 / 10` 步分别为 **`6+6` / `4+6`**；一采固定 `er_sde`，文武二采使用 `lcm`。\n- **💃 舞蹈模式 (`#332`，默认关闭)**：关闭时零干扰直通文武四路；开启后自动切至 **舞蹈双采 LoRA（一采 6 枚 / 二采 5 枚）+ `10+4` 步（`0.690` 交接）+ 二采 `er_sde`**。\n- 二采承接一采潜空间并共享头部引导；KJ 预览请求帧数为计划上限；长片逐轮累计预览会重复写盘，Run 前请确认磁盘空间。\n\n**EN**:\n- Keep `24 fps` across both planner and video creator. Regular mode defaults to `22f` overlap (an 8s continuation under `zero_tail_trim` generates `226f` → `204f` net).\n- **Step Splits**: Action `14/12` = **`8+6` / `6+6`**; Drama `12/10` = **`6+6` / `4+6`** (1st pass `er_sde`, 2nd pass `lcm`).\n- **💃 Dance Mode (`#332`, OFF by default)**: Zero interference to Action/Drama when OFF. When ON, routes to **Dance dual-pass LoRAs (6 in 1st / 5 in 2nd) + `10+4` steps (`0.690` handover) + 2nd-pass `er_sde`**.\n- 2nd pass refines 1st pass sharing the head guide; check free disk space before long cumulative runs."
+        "### 导演与采样 / Planner & Sampling Guide\n\n**中文**：\n- 全流程锁定 `24 fps`（勿只改导演台或封装器单处）。常规默认 `22` 帧重叠，`zero_tail_trim` 下 8 秒续段生成 `226` 帧，裁头后净留 `204` 帧。\n- **步数拆分**：武戏 `14 / 12` 步分别为 **`8+6` / `6+6`**；文戏 `12 / 10` 步分别为 **`6+6` / `4+6`**；一采固定 `er_sde`，文武二采使用 `lcm`。\n- **窗口引导 (`#109 / #150`)**：默认 `window_mode = off`（走 H3 原生全长单窗，15s/25s/30s+ 不重复、不额外开销）；仅低显存 OOM 时再手动开滑窗（已内置全局 RoPE 连续偏移 + 高噪步去伪锚修复，并放开 `window_frames` 上限至 `2045`）。\n- **💃 舞蹈模式 (`#332`，默认关闭)**：关闭时零干扰直通文武四路；开启后自动切至 **舞蹈双采 LoRA（一采 6 枚 / 二采 5 枚）+ `10+4` 步（`0.690` 交接）+ 二采 `er_sde`**。\n\n**EN**:\n- Keep `24 fps` across planner & video archive. Regular mode defaults to `22f` overlap (8s continuation under `zero_tail_trim` generates `226f` → `204f` net).\n- **Step Splits**: Action `14/12` = **`8+6` / `6+6`**; Drama `12/10` = **`6+6` / `4+6`** (1st `er_sde`, 2nd `lcm`).\n- **Window Guider (`#109 / #150`)**: Defaults `window_mode = off` (native full-length single-window for 15s/25s/30s+ with zero repetition); enable sliding window only for low-VRAM OOM fallback (now with global RoPE offset, high-sigma anchor gating, and uncapped `window_frames` up to `2045`).\n- **💃 Dance Mode (`#332`, OFF by default)**: Zero interference when OFF; when ON, routes to Dance dual-pass LoRAs + `10+4` steps (`0.690`) + 2nd-pass `er_sde`."
       ],
       "widgets_values_named": {
-        "text": "### 导演与采样 / Planner & Sampling Guide\n\n**中文**：\n- 全流程锁定 `24 fps`（勿只改导演台或封装器单处）。常规默认 `22` 帧重叠，`zero_tail_trim` 下 8 秒续段生成 `226` 帧，裁头后净留 `204` 帧。\n- **步数拆分**：武戏 `14 / 12` 步分别为 **`8+6` / `6+6`**；文戏 `12 / 10` 步分别为 **`6+6` / `4+6`**；一采固定 `er_sde`，文武二采使用 `lcm`。\n- **💃 舞蹈模式 (`#332`，默认关闭)**：关闭时零干扰直通文武四路；开启后自动切至 **舞蹈双采 LoRA（一采 6 枚 / 二采 5 枚）+ `10+4` 步（`0.690` 交接）+ 二采 `er_sde`**。\n- 二采承接一采潜空间并共享头部引导；KJ 预览请求帧数为计划上限；长片逐轮累计预览会重复写盘，Run 前请确认磁盘空间。\n\n**EN**:\n- Keep `24 fps` across both planner and video creator. Regular mode defaults to `22f` overlap (an 8s continuation under `zero_tail_trim` generates `226f` → `204f` net).\n- **Step Splits**: Action `14/12` = **`8+6` / `6+6`**; Drama `12/10` = **`6+6` / `4+6`** (1st pass `er_sde`, 2nd pass `lcm`).\n- **💃 Dance Mode (`#332`, OFF by default)**: Zero interference to Action/Drama when OFF. When ON, routes to **Dance dual-pass LoRAs (6 in 1st / 5 in 2nd) + `10+4` steps (`0.690` handover) + 2nd-pass `er_sde`**.\n- 2nd pass refines 1st pass sharing the head guide; check free disk space before long cumulative runs."
+        "text": "### 导演与采样 / Planner & Sampling Guide\n\n**中文**：\n- 全流程锁定 `24 fps`（勿只改导演台或封装器单处）。常规默认 `22` 帧重叠，`zero_tail_trim` 下 8 秒续段生成 `226` 帧，裁头后净留 `204` 帧。\n- **步数拆分**：武戏 `14 / 12` 步分别为 **`8+6` / `6+6`**；文戏 `12 / 10` 步分别为 **`6+6` / `4+6`**；一采固定 `er_sde`，文武二采使用 `lcm`。\n- **窗口引导 (`#109 / #150`)**：默认 `window_mode = off`（走 H3 原生全长单窗，15s/25s/30s+ 不重复、不额外开销）；仅低显存 OOM 时再手动开滑窗（已内置全局 RoPE 连续偏移 + 高噪步去伪锚修复，并放开 `window_frames` 上限至 `2045`）。\n- **💃 舞蹈模式 (`#332`，默认关闭)**：关闭时零干扰直通文武四路；开启后自动切至 **舞蹈双采 LoRA（一采 6 枚 / 二采 5 枚）+ `10+4` 步（`0.690` 交接）+ 二采 `er_sde`**。\n\n**EN**:\n- Keep `24 fps` across planner & video archive. Regular mode defaults to `22f` overlap (8s continuation under `zero_tail_trim` generates `226f` → `204f` net).\n- **Step Splits**: Action `14/12` = **`8+6` / `6+6`**; Drama `12/10` = **`6+6` / `4+6`** (1st `er_sde`, 2nd `lcm`).\n- **Window Guider (`#109 / #150`)**: Defaults `window_mode = off` (native full-length single-window for 15s/25s/30s+ with zero repetition); enable sliding window only for low-VRAM OOM fallback (now with global RoPE offset, high-sigma anchor gating, and uncapped `window_frames` up to `2045`).\n- **💃 Dance Mode (`#332`, OFF by default)**: Zero interference when OFF; when ON, routes to Dance dual-pass LoRAs + `10+4` steps (`0.690`) + 2nd-pass `er_sde`."
       },
       "color": "#1d3638",
       "bgcolor": "#254245"
@@ -4622,7 +4622,7 @@
       },
       "widgets_values": [
         "single_or_1st",
-        "auto_over_260f",
+        "off",
         260,
         39,
         "auto",
@@ -4634,7 +4634,7 @@
       ],
       "widgets_values_named": {
         "pass_stage": "single_or_1st",
-        "window_mode": "auto_over_260f",
+        "window_mode": "off",
         "window_frames": 260,
         "window_overlap": 39,
         "continuation_frames": "auto",
@@ -6799,7 +6799,7 @@
       },
       "widgets_values": [
         "2nd_refine",
-        "auto_over_260f",
+        "off",
         260,
         39,
         "auto",
@@ -6811,7 +6811,7 @@
       ],
       "widgets_values_named": {
         "pass_stage": "2nd_refine",
-        "window_mode": "auto_over_260f",
+        "window_mode": "off",
         "window_frames": 260,
         "window_overlap": 39,
         "continuation_frames": "auto",
@@ -7566,94 +7566,6 @@
       "bgcolor": "#162836"
     },
     {
-      "id": 166,
-      "type": "GetNode",
-      "pos": [
-        6225,
-        3370
-      ],
-      "size": [
-        210,
-        45
-      ],
-      "flags": {
-        "collapsed": true
-      },
-      "order": 66,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            164
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "GetNode",
-        "aux_id": "kijai/ComfyUI-KJNodes",
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "version": "7.7",
-          "input_ue_unconnectable": {}
-        }
-      },
-      "widgets_values": [
-        "原生干净画面"
-      ],
-      "widgets_values_named": {
-        "Constant": "原生干净画面"
-      },
-      "color": "#1b4669",
-      "bgcolor": "#29699c"
-    },
-    {
-      "id": 167,
-      "type": "GetNode",
-      "pos": [
-        6225,
-        3454
-      ],
-      "size": [
-        210,
-        45
-      ],
-      "flags": {
-        "collapsed": true
-      },
-      "order": 67,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "AUDIO",
-          "type": "AUDIO",
-          "links": [
-            165
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "GetNode",
-        "aux_id": "kijai/ComfyUI-KJNodes",
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "version": "7.7",
-          "input_ue_unconnectable": {}
-        }
-      },
-      "widgets_values": [
-        "交付音频"
-      ],
-      "widgets_values_named": {
-        "Constant": "交付音频"
-      },
-      "color": "#1b4669",
-      "bgcolor": "#29699c"
-    },
-    {
       "id": 168,
       "type": "GetNode",
       "pos": [
@@ -7916,69 +7828,6 @@
       },
       "color": "#1b4669",
       "bgcolor": "#29699c"
-    },
-    {
-      "id": 174,
-      "type": "CreateVideo",
-      "pos": [
-        6465,
-        3370
-      ],
-      "size": [
-        260,
-        185
-      ],
-      "flags": {},
-      "order": 193,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "images",
-          "type": "IMAGE",
-          "link": 164
-        },
-        {
-          "name": "audio",
-          "shape": 7,
-          "type": "AUDIO",
-          "link": 165
-        }
-      ],
-      "outputs": [
-        {
-          "name": "VIDEO",
-          "type": "VIDEO",
-          "links": [
-            166
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.45.0",
-        "Node name for S&R": "CreateVideo",
-        "ue_properties": {
-          "widget_ue_connectable": {},
-          "version": "7.7",
-          "input_ue_unconnectable": {}
-        }
-      },
-      "widgets_values": [
-        24,
-        8,
-        "sRGB",
-        "auto",
-        "h264"
-      ],
-      "widgets_values_named": {
-        "fps": 24,
-        "bit_depth": 8,
-        "color_space": "sRGB",
-        "chroma_subsampling": "auto",
-        "codec": "h264"
-      },
-      "color": "#223",
-      "bgcolor": "#335"
     },
     {
       "id": 175,
@@ -8404,6 +8253,13 @@
           "name": "video_path",
           "type": "STRING",
           "links": []
+        },
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "links": [
+            166
+          ]
         }
       ],
       "properties": {
@@ -9051,7 +8907,7 @@
       ],
       "flags": {},
       "order": 197,
-      "mode": 0,
+      "mode": 4,
       "inputs": [
         {
           "name": "video",
@@ -9522,6 +9378,11 @@
           "links": [
             200
           ]
+        },
+        {
+          "name": "master_video",
+          "type": "VIDEO",
+          "links": []
         }
       ],
       "properties": {
@@ -9676,10 +9537,10 @@
         }
       },
       "widgets_values": [
-        "### 双输出链 & 无缝合并 / Dual Output & Seam Merge (🧪 Experimental)\n\n**中文**：\n- **`#188 Acheng FuzzPuppy Clip Merge`**：替代原生 `ConcatenateVideo`；仅解码相邻边界，历史已合并段零重编码流拷贝。\n- **🧪 实验功能 & 所见即所得 (`#293 shot_pipe`)**：默认 `enable_repair = false`（无损直拼，与 `#20 导演台` 预览及 `#201 总装` 100% 一致）。仅当机位/分镜不变且出现续接突变时，在导演台 Tab ② 开启单镜修缝并选用「修复版」；常规切镜无需开启。\n- **参数现状**：`eI` 硬切保护（`structure < 0.38` 且 `coverage > 0.08` 才修补，换机位自动零重编码硬切）；默认 `mode = rife (5f)` + 内置 `rife422lite_fp32.onnx`；静景文戏可切 `auto_align`（`release = 0.8s`）；当前默认 `preserve_duration = true` 锁死零帧差，兼容严格对拍 MV。\n\n**EN**:\n- **`#188 Acheng FuzzPuppy Clip Merge`**: Replaces `ConcatenateVideo`; decodes only the active boundary while stream-copying prior history losslessly.\n- **🧪 Experimental & WYSIWYG (`#293 shot_pipe`)**: `enable_repair = false` by default (matches `#20` preview & `#201` master). Only enable per-shot in Tab ② when continuation glitches occur with unchanged camera/framing.\n- **Active Defaults**: `eI` hard-cut gate (`structure < 0.38`, `coverage > 0.08`); `mode = rife (5f)` with bundled `rife422lite_fp32.onnx` (or `auto_align`, `release = 0.8s`); `preserve_duration = true` locks zero frame drift for beat-synced MVs."
+        "### 双输出链 & 无缝合并 / Dual Output & Seam Merge (🧪 Experimental)\n\n**中文**：\n- **零二次编码链路**：`#181 ShotVaultSave` 归档单镜 MP4 后直接零成本输出 `video` (`VideoFromFile`) 经 `#175` 供 `#184` 当段预览与 `#188` 合并，全流程每段仅做 **1 次 H.264 编码**（已彻底移除原重复重编的 `CreateVideo`）。\n- **`#188 Acheng FuzzPuppy Clip Merge`**：替代原生 `ConcatenateVideo`；仅解码相邻边界，历史已合并段零重编码流拷贝。\n- **🧪 实验功能 & 所见即所得 (`#293 shot_pipe`)**：默认 `enable_repair = false`（无损直拼，与 `#20 导演台` 预览及 `#201 总装` 100% 一致）。仅当机位/分镜不变且出现续接突变时，在导演台 Tab ② 开启单镜修缝并选用「修复版」；常规切镜无需开启。\n- **参数现状**：`eI` 硬切保护（`structure < 0.38` 且 `coverage > 0.08` 才修补，换机位自动零重编码硬切）；默认 `mode = rife (5f)` + 内置 `rife422lite_fp32.onnx`；当前默认 `preserve_duration = true` 锁死零帧差。\n\n**EN**:\n- **Single-Encode Pipeline**: `#181 ShotVaultSave` outputs its already-encoded MP4 directly via zero-reencode `VideoFromFile` to `#175 → #184 → #188` (eliminating redundant `CreateVideo` 2nd H.264 encode).\n- **`#188 Acheng FuzzPuppy Clip Merge`**: Replaces `ConcatenateVideo`; decodes only the active boundary while stream-copying prior history losslessly.\n- **🧪 Experimental & WYSIWYG (`#293 shot_pipe`)**: `enable_repair = false` by default. Enable per-shot in Tab ② only for continuation glitches under unchanged camera/framing.\n- **Active Defaults**: `eI` hard-cut gate (`structure < 0.38`, `coverage > 0.08`); `mode = rife (5f)` + bundled `rife422lite_fp32.onnx`; `preserve_duration = true` locks zero frame drift."
       ],
       "widgets_values_named": {
-        "text": "### 双输出链 & 无缝合并 / Dual Output & Seam Merge (🧪 Experimental)\n\n**中文**：\n- **`#188 Acheng FuzzPuppy Clip Merge`**：替代原生 `ConcatenateVideo`；仅解码相邻边界，历史已合并段零重编码流拷贝。\n- **🧪 实验功能 & 所见即所得 (`#293 shot_pipe`)**：默认 `enable_repair = false`（无损直拼，与 `#20 导演台` 预览及 `#201 总装` 100% 一致）。仅当机位/分镜不变且出现续接突变时，在导演台 Tab ② 开启单镜修缝并选用「修复版」；常规切镜无需开启。\n- **参数现状**：`eI` 硬切保护（`structure < 0.38` 且 `coverage > 0.08` 才修补，换机位自动零重编码硬切）；默认 `mode = rife (5f)` + 内置 `rife422lite_fp32.onnx`；静景文戏可切 `auto_align`（`release = 0.8s`）；当前默认 `preserve_duration = true` 锁死零帧差，兼容严格对拍 MV。\n\n**EN**:\n- **`#188 Acheng FuzzPuppy Clip Merge`**: Replaces `ConcatenateVideo`; decodes only the active boundary while stream-copying prior history losslessly.\n- **🧪 Experimental & WYSIWYG (`#293 shot_pipe`)**: `enable_repair = false` by default (matches `#20` preview & `#201` master). Only enable per-shot in Tab ② when continuation glitches occur with unchanged camera/framing.\n- **Active Defaults**: `eI` hard-cut gate (`structure < 0.38`, `coverage > 0.08`); `mode = rife (5f)` with bundled `rife422lite_fp32.onnx` (or `auto_align`, `release = 0.8s`); `preserve_duration = true` locks zero frame drift for beat-synced MVs."
+        "text": "### 双输出链 & 无缝合并 / Dual Output & Seam Merge (🧪 Experimental)\n\n**中文**：\n- **零二次编码链路**：`#181 ShotVaultSave` 归档单镜 MP4 后直接零成本输出 `video` (`VideoFromFile`) 经 `#175` 供 `#184` 当段预览与 `#188` 合并，全流程每段仅做 **1 次 H.264 编码**（已彻底移除原重复重编的 `CreateVideo`）。\n- **`#188 Acheng FuzzPuppy Clip Merge`**：替代原生 `ConcatenateVideo`；仅解码相邻边界，历史已合并段零重编码流拷贝。\n- **🧪 实验功能 & 所见即所得 (`#293 shot_pipe`)**：默认 `enable_repair = false`（无损直拼，与 `#20 导演台` 预览及 `#201 总装` 100% 一致）。仅当机位/分镜不变且出现续接突变时，在导演台 Tab ② 开启单镜修缝并选用「修复版」；常规切镜无需开启。\n- **参数现状**：`eI` 硬切保护（`structure < 0.38` 且 `coverage > 0.08` 才修补，换机位自动零重编码硬切）；默认 `mode = rife (5f)` + 内置 `rife422lite_fp32.onnx`；当前默认 `preserve_duration = true` 锁死零帧差。\n\n**EN**:\n- **Single-Encode Pipeline**: `#181 ShotVaultSave` outputs its already-encoded MP4 directly via zero-reencode `VideoFromFile` to `#175 → #184 → #188` (eliminating redundant `CreateVideo` 2nd H.264 encode).\n- **`#188 Acheng FuzzPuppy Clip Merge`**: Replaces `ConcatenateVideo`; decodes only the active boundary while stream-copying prior history losslessly.\n- **🧪 Experimental & WYSIWYG (`#293 shot_pipe`)**: `enable_repair = false` by default. Enable per-shot in Tab ② only for continuation glitches under unchanged camera/framing.\n- **Active Defaults**: `eI` hard-cut gate (`structure < 0.38`, `coverage > 0.08`); `mode = rife (5f)` + bundled `rife422lite_fp32.onnx`; `preserve_duration = true` locks zero frame drift."
       },
       "color": "#1d3547",
       "bgcolor": "#162836"
@@ -9941,10 +9802,10 @@
         }
       },
       "widgets_values": [
-        "### 三路视频与归档 / Three Video Outputs & Archive\n\n**中文**：\n- **`complete_run` (`#207`)**：本轮循环最终累计完整视频。\n- **`through_segment` (`#193`)**：每完成一轮实时写出的累计预览。\n- **`segment` (`#184`)**：单段独立成品片段。\n- **`#201 ShotVault Assemble`**：另行无损总装写入 `output/ShotVault/<项目名>/master/`（含 `master.mp4`、`.manifest.json`、达芬奇 `FCPXML`），路径见 `#209` 报告，接缝明细见 `#214` 诊断。\n\n**EN**:\n- **`complete_run` (`#207`)**: Final accumulated video for the full loop run.\n- **`through_segment` (`#193`)**: Cumulative preview updated after each segment.\n- **`segment` (`#184`)**: Standalone per-shot segment clip.\n- **`#201 ShotVault Assemble`**: Separately exports `master.mp4`, `.manifest.json`, and DaVinci `FCPXML` under `output/ShotVault/<project>/master/` (see `#209` report & `#214` seam diagnostics)."
+        "### 三路视频与精简写盘 / Video Outputs & Streamlined I/O\n\n**中文**：\n- **`complete_run` (`#207`，开启)**：整轮循环结束后写出并播放最终累计完整视频（仅流拷贝 1 次）。\n- **`segment` (`#184`，开启)**：每段完成后流拷贝预览当前片段（直接复用 `#181` 编码成果，零二次 H.264 编码）。\n- **`through_segment` (`#193`，默认旁路)**：默认 `Ctrl+B` 旁路以消除循环内 $O(N^2)$ 重复写盘；若需逐轮落盘备份，选中 `#193` 按 `Ctrl+B` 即可恢复。\n- **`#201 ShotVault Assemble`**：无损总装写入 `output/ShotVault/<项目名>/master/`（含 `master.mp4`、`.manifest.json`、达芬奇 `FCPXML`；单段无偏移时走 `< 0.05s` 原子直拷快路径）。\n\n**EN**:\n- **`complete_run` (`#207`, ON)**: Saves & previews final accumulated video once after the loop ends.\n- **`segment` (`#184`, ON)**: Per-segment live preview via fast stream-copy directly from `#181 ShotVaultSave` (zero 2nd H.264 encode).\n- **`through_segment` (`#193`, Bypassed by default)**: Bypassed to avoid $O(N^2)$ per-round disk writes; press `Ctrl+B` on `#193` if you want per-round progress backups.\n- **`#201 ShotVault Assemble`**: Exports `master.mp4`, `.manifest.json`, and DaVinci `FCPXML` under `output/ShotVault/<project>/master/` (uses `< 0.05s` zero-reencode copy on single-shot runs)."
       ],
       "widgets_values_named": {
-        "text": "### 三路视频与归档 / Three Video Outputs & Archive\n\n**中文**：\n- **`complete_run` (`#207`)**：本轮循环最终累计完整视频。\n- **`through_segment` (`#193`)**：每完成一轮实时写出的累计预览。\n- **`segment` (`#184`)**：单段独立成品片段。\n- **`#201 ShotVault Assemble`**：另行无损总装写入 `output/ShotVault/<项目名>/master/`（含 `master.mp4`、`.manifest.json`、达芬奇 `FCPXML`），路径见 `#209` 报告，接缝明细见 `#214` 诊断。\n\n**EN**:\n- **`complete_run` (`#207`)**: Final accumulated video for the full loop run.\n- **`through_segment` (`#193`)**: Cumulative preview updated after each segment.\n- **`segment` (`#184`)**: Standalone per-shot segment clip.\n- **`#201 ShotVault Assemble`**: Separately exports `master.mp4`, `.manifest.json`, and DaVinci `FCPXML` under `output/ShotVault/<project>/master/` (see `#209` report & `#214` seam diagnostics)."
+        "text": "### 三路视频与精简写盘 / Video Outputs & Streamlined I/O\n\n**中文**：\n- **`complete_run` (`#207`，开启)**：整轮循环结束后写出并播放最终累计完整视频（仅流拷贝 1 次）。\n- **`segment` (`#184`，开启)**：每段完成后流拷贝预览当前片段（直接复用 `#181` 编码成果，零二次 H.264 编码）。\n- **`through_segment` (`#193`，默认旁路)**：默认 `Ctrl+B` 旁路以消除循环内 $O(N^2)$ 重复写盘；若需逐轮落盘备份，选中 `#193` 按 `Ctrl+B` 即可恢复。\n- **`#201 ShotVault Assemble`**：无损总装写入 `output/ShotVault/<项目名>/master/`（含 `master.mp4`、`.manifest.json`、达芬奇 `FCPXML`；单段无偏移时走 `< 0.05s` 原子直拷快路径）。\n\n**EN**:\n- **`complete_run` (`#207`, ON)**: Saves & previews final accumulated video once after the loop ends.\n- **`segment` (`#184`, ON)**: Per-segment live preview via fast stream-copy directly from `#181 ShotVaultSave` (zero 2nd H.264 encode).\n- **`through_segment` (`#193`, Bypassed by default)**: Bypassed to avoid $O(N^2)$ per-round disk writes; press `Ctrl+B` on `#193` if you want per-round progress backups.\n- **`#201 ShotVault Assemble`**: Exports `master.mp4`, `.manifest.json`, and DaVinci `FCPXML` under `output/ShotVault/<project>/master/` (uses `< 0.05s` zero-reencode copy on single-shot runs)."
       },
       "color": "#432",
       "bgcolor": "#653"
@@ -17445,28 +17306,12 @@
       "AUDIO"
     ],
     [
-      164,
       166,
-      0,
-      174,
-      0,
-      "IMAGE"
-    ],
-    [
-      165,
-      167,
-      0,
-      174,
-      1,
-      "AUDIO"
-    ],
-    [
-      166,
-      174,
-      0,
+      181,
+      5,
       175,
       0,
-      "*"
+      "VIDEO"
     ],
     [
       167,

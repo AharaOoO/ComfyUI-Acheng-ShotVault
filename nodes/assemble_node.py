@@ -4,11 +4,24 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from typing import Optional
 
 from ..compat import resolve_output_root
 from ..core.assembler import assemble_master
 from ..core.vault_store import VaultStore
+
+
+def _wrap_master_video(video_abs: str):
+    """Wrap assembled master MP4 as ComfyUI `VIDEO` (`VideoFromFile`) with zero re-encoding."""
+    if not video_abs or not os.path.isfile(video_abs):
+        return None
+    try:
+        from comfy_api.latest import InputImpl  # type: ignore
+
+        return InputImpl.VideoFromFile(video_abs)
+    except Exception:
+        return None
 
 
 class ShotVaultAssemble:
@@ -32,8 +45,8 @@ class ShotVaultAssemble:
             },
         }
 
-    RETURN_TYPES = ("STRING", "STRING", "STRING")
-    RETURN_NAMES = ("master_path", "fcpxml_path", "report_json")
+    RETURN_TYPES = ("STRING", "STRING", "STRING", "VIDEO")
+    RETURN_NAMES = ("master_path", "fcpxml_path", "report_json", "master_video")
     FUNCTION = "assemble"
     CATEGORY = "Acheng-ShotVault/Core"
     OUTPUT_NODE = True
@@ -100,5 +113,5 @@ class ShotVaultAssemble:
         )
         return {
             "ui": {ui_key: ui_payload},
-            "result": (master_mp4, fcpxml_path, report_json),
+            "result": (master_mp4, fcpxml_path, report_json, _wrap_master_video(master_mp4)),
         }

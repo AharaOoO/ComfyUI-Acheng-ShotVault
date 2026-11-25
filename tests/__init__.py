@@ -1,1 +1,1 @@
-"""Unit tests for ComfyUI-Universal-ShotVault."""
+"""Unit tests for ComfyUI-Acheng-ShotVault."""

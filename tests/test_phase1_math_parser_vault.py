@@ -15,12 +15,12 @@ for p in (COMFY_ROOT, CUSTOM_NODES_DIR):
     if p not in sys.path:
         sys.path.insert(0, p)
 
-sv_pkg = importlib.import_module("ComfyUI-Universal-ShotVault")
-compat = importlib.import_module("ComfyUI-Universal-ShotVault.compat")
-grid_math = importlib.import_module("ComfyUI-Universal-ShotVault.core.grid_math")
-lineage_dag = importlib.import_module("ComfyUI-Universal-ShotVault.core.lineage_dag")
-script_parser = importlib.import_module("ComfyUI-Universal-ShotVault.core.script_parser")
-vault_store = importlib.import_module("ComfyUI-Universal-ShotVault.core.vault_store")
+sv_pkg = importlib.import_module("ComfyUI-Acheng-ShotVault")
+compat = importlib.import_module("ComfyUI-Acheng-ShotVault.compat")
+grid_math = importlib.import_module("ComfyUI-Acheng-ShotVault.core.grid_math")
+lineage_dag = importlib.import_module("ComfyUI-Acheng-ShotVault.core.lineage_dag")
+script_parser = importlib.import_module("ComfyUI-Acheng-ShotVault.core.script_parser")
+vault_store = importlib.import_module("ComfyUI-Acheng-ShotVault.core.vault_store")
 
 sanitize_project_name = compat.sanitize_project_name
 sha256_text = compat.sha256_text

@@ -16,8 +16,8 @@ class ShotVaultWindowGuider:
                 "positive": ("CONDITIONING",),
                 "latent": ("LATENT",),
                 "pass_stage": (["single_or_1st", "2nd_refine"], {"default": "single_or_1st"}),
-                "window_mode": (["auto_over_260f", "auto_over_192f", "force_on", "off"], {"default": "auto_over_260f"}),
-                "window_frames": ("INT", {"default": 260, "min": 124, "max": 362, "step": 17}),
+                "window_mode": (["off", "auto_over_260f", "auto_over_192f", "force_on"], {"default": "off"}),
+                "window_frames": ("INT", {"default": 260, "min": 124, "max": 2045, "step": 17}),
                 "window_overlap": ("INT", {"default": 39, "min": 22, "max": 107, "step": 17}),
                 "continuation_frames": (
                     ["auto", "auto+auto", "auto+5", "auto+0", "22+5", "39+5", "22+22", "39+39", "22+0", "39+0"],

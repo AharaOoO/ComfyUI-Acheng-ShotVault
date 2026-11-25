@@ -16,14 +16,14 @@ for p in (COMFY_ROOT, CUSTOM_NODES_DIR):
     if p not in sys.path:
         sys.path.insert(0, p)
 
-compat = importlib.import_module("ComfyUI-Universal-ShotVault.compat")
-assembler_mod = importlib.import_module("ComfyUI-Universal-ShotVault.core.assembler")
-asset_mod = importlib.import_module("ComfyUI-Universal-ShotVault.core.asset_and_turnaround")
-cw_mod = importlib.import_module("ComfyUI-Universal-ShotVault.core.context_window_guider")
-color_mod = importlib.import_module("ComfyUI-Universal-ShotVault.core.seam_and_color")
-qc_mod = importlib.import_module("ComfyUI-Universal-ShotVault.core.seam_qc")
-seed_mod = importlib.import_module("ComfyUI-Universal-ShotVault.core.seed_video_ingest")
-vs_mod = importlib.import_module("ComfyUI-Universal-ShotVault.core.vault_store")
+compat = importlib.import_module("ComfyUI-Acheng-ShotVault.compat")
+assembler_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.core.assembler")
+asset_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.core.asset_and_turnaround")
+cw_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.core.context_window_guider")
+color_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.core.seam_and_color")
+qc_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.core.seam_qc")
+seed_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.core.seed_video_ingest")
+vs_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.core.vault_store")
 
 sha256_text = compat.sha256_text
 _count_video_frames = assembler_mod._count_video_frames
@@ -290,7 +290,7 @@ class TestPhase2GuiderColorMux(unittest.TestCase):
             self.assertIsNotNone(store.load_take_context(meta["take_id"]))
 
     def test_beat_snap_transient_alignment(self):
-        plan_mod = importlib.import_module("ComfyUI-Universal-ShotVault.nodes.plan_node")
+        plan_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.nodes.plan_node")
         sr = 48000
         wav = torch.ones((2, sr * 4), dtype=torch.float32) * 0.01
         onset_s = round(2.12 * sr)
@@ -300,7 +300,7 @@ class TestPhase2GuiderColorMux(unittest.TestCase):
         self.assertLess(abs(snapped[0] - 2.12), 0.06)
 
     def test_continuation_frames_22_plus_0_skips_2nd_pass_keyframe(self):
-        sv_pkg = importlib.import_module("ComfyUI-Universal-ShotVault")
+        sv_pkg = importlib.import_module("ComfyUI-Acheng-ShotVault")
         import comfy.nested_tensor  # type: ignore
 
         wg = sv_pkg.NODE_CLASS_MAPPINGS["ShotVaultWindowGuider"]()

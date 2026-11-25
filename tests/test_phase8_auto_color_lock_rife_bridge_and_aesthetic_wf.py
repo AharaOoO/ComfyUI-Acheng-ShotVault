@@ -21,10 +21,10 @@ for p in (COMFY_ROOT, CUSTOM_NODES_DIR):
     if p not in sys.path:
         sys.path.insert(0, p)
 
-sv_pkg = importlib.import_module("ComfyUI-Universal-ShotVault")
-sc_mod = importlib.import_module("ComfyUI-Universal-ShotVault.core.seam_and_color")
-rb_mod = importlib.import_module("ComfyUI-Universal-ShotVault.core.rife_micro_bridge")
-vs_mod = importlib.import_module("ComfyUI-Universal-ShotVault.core.vault_store")
+sv_pkg = importlib.import_module("ComfyUI-Acheng-ShotVault")
+sc_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.core.seam_and_color")
+rb_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.core.rife_micro_bridge")
+vs_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.core.vault_store")
 
 
 def _make_textured_clip(
@@ -378,8 +378,8 @@ class TestPhase8AutoColorLockRifeBridgeAndAestheticWf(unittest.TestCase):
                     fake_dec = _make_textured_clip(raw_frames, h=64, w=64)
                     trimmed, out_aud = trim_cls.trim_and_match(fake_dec, -1, -1, "auto_dual_mkl_lab", 14, "0.75, 0.45, 0.18", reference_clean_tail=prev_clean, shot_pipe=sp)
                     self.assertEqual(int(trimmed.shape[0]), int(sp["keep_frames"]))
-                    _, _, carry, _, _ = save_cls.save_take(trimmed, sp, False, 20, "h264", final_audio=out_aud, clean_images=trimmed)["result"]
-                m_path, _, _ = asm_cls.assemble(f"LoopGear{gear}", "defer_until_complete", "auto_prefer_reference", 15.0, 0.0, True, True, shot_pipe=carry)["result"]
+                    _, _, carry, _, _, _ = save_cls.save_take(trimmed, sp, False, 20, "h264", final_audio=out_aud, clean_images=trimmed)["result"]
+                m_path, _, _, _ = asm_cls.assemble(f"LoopGear{gear}", "defer_until_complete", "auto_prefer_reference", 15.0, 0.0, True, True, shot_pipe=carry)["result"]
                 self.assertTrue(os.path.isfile(m_path))
 
         with tempfile.TemporaryDirectory() as tmp, patch("folder_paths.get_output_directory", return_value=tmp):
@@ -552,7 +552,7 @@ class TestPhase8AutoColorLockRifeBridgeAndAestheticWf(unittest.TestCase):
     def test_audio_mv_conflict_guard_and_48k_monitor_audio(self):
         import wave
 
-        asset_mod = importlib.import_module("ComfyUI-Universal-ShotVault.core.asset_and_turnaround")
+        asset_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.core.asset_and_turnaround")
         plan_cls = sv_pkg.NODE_CLASS_MAPPINGS["ShotVaultPlan"]()
         cond_cls = sv_pkg.NODE_CLASS_MAPPINGS["ShotVaultH3Conditioning"]()
         trim_cls = sv_pkg.NODE_CLASS_MAPPINGS["ShotVaultSeamTrim"]()
@@ -638,7 +638,7 @@ class TestPhase8AutoColorLockRifeBridgeAndAestheticWf(unittest.TestCase):
 
     def test_v55_symmetric_auto_head_latent_and_zero_sigma_drop_across_two_pass(self):
         import comfy.nested_tensor  # type: ignore
-        cw_mod = importlib.import_module("ComfyUI-Universal-ShotVault.core.context_window_guider")
+        cw_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.core.context_window_guider")
         wg_cls = sv_pkg.NODE_CLASS_MAPPINGS["ShotVaultWindowGuider"]()
 
         class _NeverEncodeVAE:
@@ -677,7 +677,7 @@ class TestPhase8AutoColorLockRifeBridgeAndAestheticWf(unittest.TestCase):
     def test_v56_zero_tail_trim_260f_single_window_and_known_continuation_seam_rescue(self):
         import comfy.nested_tensor  # type: ignore
         import comfy.samplers  # type: ignore
-        gm = importlib.import_module("ComfyUI-Universal-ShotVault.core.grid_math")
+        gm = importlib.import_module("ComfyUI-Acheng-ShotVault.core.grid_math")
         wg_cls = sv_pkg.NODE_CLASS_MAPPINGS["ShotVaultWindowGuider"]()
         trim_n = sv_pkg.NODE_CLASS_MAPPINGS["ShotVaultSeamTrim"]()
 

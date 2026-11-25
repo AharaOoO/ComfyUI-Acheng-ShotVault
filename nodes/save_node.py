@@ -17,6 +17,18 @@ from ..core.vault_store import VaultStore
 from ..server_routes import is_aborted, schedule_next_queue_head
 
 
+def _wrap_video_file(video_abs: str):
+    """Wrap an already-encoded MP4/MOV on disk as a ComfyUI `VIDEO` (`VideoFromFile`) with zero re-encoding."""
+    if not video_abs or not os.path.isfile(video_abs):
+        return None
+    try:
+        from comfy_api.latest import InputImpl  # type: ignore
+
+        return InputImpl.VideoFromFile(video_abs)
+    except Exception:
+        return None
+
+
 def _extract_stereo_48k(audio_dict: Optional[dict], target_frames: int, fps: int) -> Optional[torch.Tensor]:
     if not isinstance(audio_dict, dict) or not isinstance(audio_dict.get("waveform"), torch.Tensor):
         return None
@@ -59,8 +71,8 @@ class ShotVaultSave:
             },
         }
 
-    RETURN_TYPES = ("IMAGE", "AUDIO", "SHOT_PIPE", "STRING", "STRING")
-    RETURN_NAMES = ("final_images", "audio", "updated_pipe", "take_id", "video_path")
+    RETURN_TYPES = ("IMAGE", "AUDIO", "SHOT_PIPE", "STRING", "STRING", "VIDEO")
+    RETURN_NAMES = ("final_images", "audio", "updated_pipe", "take_id", "video_path", "video")
     FUNCTION = "save_take"
     CATEGORY = "Acheng-ShotVault/Core"
     OUTPUT_NODE = True
@@ -261,6 +273,7 @@ class ShotVaultSave:
             updated_pipe["auto_assembled_master"] = auto_assembled_master
         gc.collect()
 
+        video_handle = _wrap_video_file(video_abs)
         return {
             "ui": {
                 "shotvault_saved": [{
@@ -271,5 +284,5 @@ class ShotVaultSave:
                     "remaining": remaining,
                 }]
             },
-            "result": (final_images, out_audio, updated_pipe, take_id, video_abs),
+            "result": (final_images, out_audio, updated_pipe, take_id, video_abs, video_handle),
         }

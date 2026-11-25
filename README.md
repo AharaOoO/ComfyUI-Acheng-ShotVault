@@ -9,7 +9,7 @@
 </p>
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Release](https://img.shields.io/badge/Release-v5.8.2-emerald.svg)](https://github.com/AharaOoO/ComfyUI-Acheng-ShotVault/releases)
+[![Release](https://img.shields.io/badge/Release-v5.8.3-emerald.svg)](https://github.com/AharaOoO/ComfyUI-Acheng-ShotVault/releases)
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-Custom%20Nodes-orange.svg)](https://github.com/comfyanonymous/ComfyUI)
 [![Python](https://img.shields.io/badge/Python-%E2%89%A53.10-3776AB.svg)](https://www.python.org/)
 
@@ -69,10 +69,10 @@ A single `git clone` into `ComfyUI/custom_nodes/` registers all **10 author-owne
 | `ShotVaultPlan` | **ShotVault Plan** | Interactive storyboard planner & audio/shot orchestrator; outputs `shot_pipe`, `total_shots`, `plan_summary_json` |
 | `ShotVaultLoopDispatch` | **ShotVault Loop Dispatch** | Drives `forLoop` per-shot prompt/seed/reference dispatch, skips already-`VALID` shots on resume, handles single-shot reroll locking & clean next-head loading |
 | `ShotVaultH3Conditioning` | **ShotVault H3 Conditioning** | Builds per-shot MiniMax H3 multimodal conditioning from active 9-slot image & audio references |
-| `ShotVaultWindowGuider` | **ShotVault Window Guider** | Manages 1st/2nd-pass shared context windows, tail latent caching, bidirectional tail keyframe injection, and reverse-taper noise |
+| `ShotVaultWindowGuider` | **ShotVault Window Guider** | Manages 1st/2nd-pass shared context caches, bidirectional tail keyframe injection, reverse-taper noise, and optional sliding context windows (`window_mode=off` by default for native 15s/25s/30s+ single-window generation; global RoPE offset + high-sigma anchor gating when enabled) |
 | `ShotVaultSeamTrim` | **ShotVault Seam Trim** | Trims exact overlap lead-in (`22f / 39f / 56f`), performs CIE Lab MKL linear color lock, and runs seam QC diagnostics |
-| `ShotVaultSave` | **ShotVault Save** | Atomically saves each shot MP4, thumbnail, seam comparison preview, and `.h3ctx.safetensors`; updates lineage DAG and optionally auto-refreshes `master.mp4` |
-| `ShotVaultAssemble` | **ShotVault Assemble** | Zero-drift single-pass PCM/AAC master assembly exporting `master.mp4`, `.manifest.json`, and DaVinci Resolve `FCPXML` |
+| `ShotVaultSave` | **ShotVault Save** | Atomically saves each shot MP4 (single H.264 encode), outputs a zero-reencode `VIDEO` handle (`VideoFromFile`), thumbnail, seam comparison preview, and `.h3ctx.safetensors`; updates lineage DAG and optionally auto-refreshes `master.mp4` |
+| `ShotVaultAssemble` | **ShotVault Assemble** | Zero-drift single-pass PCM/AAC master assembly (with `< 0.05s` single-shot zero-reencode copy fast-path) exporting `master.mp4`, `.manifest.json`, DaVinci `FCPXML`, and `master_video` |
 | `ShotVaultLoad` | **ShotVault Load** | Loads an archived shot take and context directly by project name and shot index |
 | `AchengSeamBridge` | **Acheng Seam Bridge** | Post-decode / pre-encode local single-seam repair (`off / auto / align_color / flow / rife`) with hard-cut protection |
 | `AchengFuzzPuppyClipMerge` | **Acheng FuzzPuppy Clip Merge** | Drop-in `ConcatenateVideo` replacement: decodes only the active join boundary while stream-copying prior history losslessly |

@@ -277,86 +277,116 @@ def assemble_master(
         total_frames = sum(int(c["frames"]) for c in active_clips)
         total_samples = max(1, round(total_frames / float(fps) * DELIVERY_AUDIO_SR))
 
-        if audio_source_policy == "master_override" and isinstance(master_audio_override, dict) and isinstance(master_audio_override.get("waveform"), torch.Tensor):
-            mw = master_audio_override["waveform"][0].detach().cpu().float()
-            if mw.shape[0] == 1:
-                mw = mw.repeat(2, 1)
-            elif mw.shape[0] > 2:
-                mw = mw[:2]
-            m48 = resample_audio(mw, int(master_audio_override.get("sample_rate", 48000)), DELIVERY_AUDIO_SR)
-            if m48.shape[1] < total_samples:
-                m48 = F.pad(m48, (0, total_samples - m48.shape[1]))
-            full_pcm = m48[:, :total_samples]
-        else:
-            audio_segs: list[torch.Tensor] = []
-            for clip in active_clips:
-                need_s = max(1, round(clip["frames"] / float(fps) * DELIVERY_AUDIO_SR))
-                wav = None
-                if clip.get("take_id"):
-                    ctx = store.load_take_context(clip["take_id"])
-                    if ctx is not None and "delivery_audio_48k" in ctx["tensors"]:
-                        wav = ctx["tensors"]["delivery_audio_48k"].float()
-                if wav is None:
-                    wav = _decode_mp4_audio_48k(clip["path"])
-                if wav is None:
-                    wav = torch.zeros((2, need_s), dtype=torch.float32)
-                if wav.shape[0] == 1:
-                    wav = wav.repeat(2, 1)
-                elif wav.shape[0] > 2:
-                    wav = wav[:2]
-                if wav.shape[1] < need_s:
-                    wav = F.pad(wav, (0, need_s - wav.shape[1]))
-                else:
-                    wav = wav[:, :need_s]
-                audio_segs.append(wav)
-            full_pcm = _apply_boundary_declick(audio_segs, float(audio_crossfade_ms))
-            if full_pcm.shape[1] < total_samples:
-                full_pcm = F.pad(full_pcm, (0, total_samples - full_pcm.shape[1]))
-            else:
-                full_pcm = full_pcm[:, :total_samples]
-
-        offset_samples = round(float(post_mux_offset_ms) / 1000.0 * DELIVERY_AUDIO_SR)
-        if offset_samples > 0:
-            full_pcm = torch.cat([torch.zeros((2, offset_samples), dtype=torch.float32), full_pcm], dim=1)[:, :total_samples]
-        elif offset_samples < 0:
-            shift = min(-offset_samples, full_pcm.shape[1])
-            full_pcm = torch.cat([full_pcm[:, shift:], torch.zeros((2, shift), dtype=torch.float32)], dim=1)
-
-        list_txt = os.path.join(tmpdir, "concat_list.txt")
-        video_only = os.path.join(tmpdir, "video_only.mp4")
-        with open(list_txt, "w", encoding="utf-8") as f:
-            for clip in active_clips:
-                escaped = os.path.abspath(clip["path"]).replace("\\", "/").replace("'", "'\\''")
-                f.write(f"file '{escaped}'\n")
-
-        c_proc = subprocess.run(
-            [ffmpeg_exe, "-y", "-hide_banner", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", list_txt, "-an", "-c:v", "copy", video_only],
-            capture_output=True,
+        has_master_override = (
+            audio_source_policy == "master_override"
+            and isinstance(master_audio_override, dict)
+            and isinstance(master_audio_override.get("waveform"), torch.Tensor)
         )
-        if c_proc.returncode != 0:
-            raise RuntimeError(f"ShotVault FFmpeg concat failed: {c_proc.stderr.decode('utf-8', 'replace')}")
+        can_single_clip_fast_copy = (
+            len(active_clips) == 1
+            and not applied_seam_repairs
+            and abs(float(post_mux_offset_ms)) < 1e-4
+            and not has_master_override
+            and str(active_clips[0]["path"]).lower().endswith(".mp4")
+            and os.path.isfile(active_clips[0]["path"])
+        )
 
-        pcm_bytes = np.ascontiguousarray(full_pcm.transpose(0, 1).numpy(), dtype="<f4").tobytes()
-        tmp_master_mp4 = os.path.join(store.master_dir, f"{base_name}.tmp.{os.getpid()}.{uuid.uuid4().hex[:6]}.mp4")
-        mux_cmd = [
-            ffmpeg_exe, "-y", "-hide_banner", "-loglevel", "error",
-            "-i", video_only,
-            "-f", "f32le", "-ar", str(DELIVERY_AUDIO_SR), "-ac", "2", "-i", "pipe:0",
-            "-map", "0:v:0", "-map", "1:a:0",
-            "-c:v", "copy", "-c:a", "aac", "-b:a", "320k", "-shortest", "-movflags", "+faststart",
-            tmp_master_mp4,
-        ]
-        try:
-            m_proc = subprocess.run(mux_cmd, input=pcm_bytes, capture_output=True)
-            if m_proc.returncode != 0:
-                raise RuntimeError(f"ShotVault single-pass PCM mux failed: {m_proc.stderr.decode('utf-8', 'replace')}")
-            os.replace(tmp_master_mp4, master_mp4)
-        finally:
-            if os.path.exists(tmp_master_mp4):
-                try:
-                    os.remove(tmp_master_mp4)
-                except OSError:
-                    pass
+        if can_single_clip_fast_copy:
+            import shutil
+
+            tmp_master_mp4 = os.path.join(store.master_dir, f"{base_name}.tmp.{os.getpid()}.{uuid.uuid4().hex[:6]}.mp4")
+            try:
+                shutil.copy2(active_clips[0]["path"], tmp_master_mp4)
+                os.replace(tmp_master_mp4, master_mp4)
+            finally:
+                if os.path.exists(tmp_master_mp4):
+                    try:
+                        os.remove(tmp_master_mp4)
+                    except OSError:
+                        pass
+            audio_samples_48k = int(total_samples)
+        else:
+            if has_master_override:
+                mw = master_audio_override["waveform"][0].detach().cpu().float()
+                if mw.shape[0] == 1:
+                    mw = mw.repeat(2, 1)
+                elif mw.shape[0] > 2:
+                    mw = mw[:2]
+                m48 = resample_audio(mw, int(master_audio_override.get("sample_rate", 48000)), DELIVERY_AUDIO_SR)
+                if m48.shape[1] < total_samples:
+                    m48 = F.pad(m48, (0, total_samples - m48.shape[1]))
+                full_pcm = m48[:, :total_samples]
+            else:
+                audio_segs: list[torch.Tensor] = []
+                for clip in active_clips:
+                    need_s = max(1, round(clip["frames"] / float(fps) * DELIVERY_AUDIO_SR))
+                    wav = None
+                    if clip.get("take_id"):
+                        ctx = store.load_take_context(clip["take_id"])
+                        if ctx is not None and "delivery_audio_48k" in ctx["tensors"]:
+                            wav = ctx["tensors"]["delivery_audio_48k"].float()
+                    if wav is None:
+                        wav = _decode_mp4_audio_48k(clip["path"])
+                    if wav is None:
+                        wav = torch.zeros((2, need_s), dtype=torch.float32)
+                    if wav.shape[0] == 1:
+                        wav = wav.repeat(2, 1)
+                    elif wav.shape[0] > 2:
+                        wav = wav[:2]
+                    if wav.shape[1] < need_s:
+                        wav = F.pad(wav, (0, need_s - wav.shape[1]))
+                    else:
+                        wav = wav[:, :need_s]
+                    audio_segs.append(wav)
+                full_pcm = _apply_boundary_declick(audio_segs, float(audio_crossfade_ms))
+                if full_pcm.shape[1] < total_samples:
+                    full_pcm = F.pad(full_pcm, (0, total_samples - full_pcm.shape[1]))
+                else:
+                    full_pcm = full_pcm[:, :total_samples]
+
+            offset_samples = round(float(post_mux_offset_ms) / 1000.0 * DELIVERY_AUDIO_SR)
+            if offset_samples > 0:
+                full_pcm = torch.cat([torch.zeros((2, offset_samples), dtype=torch.float32), full_pcm], dim=1)[:, :total_samples]
+            elif offset_samples < 0:
+                shift = min(-offset_samples, full_pcm.shape[1])
+                full_pcm = torch.cat([full_pcm[:, shift:], torch.zeros((2, shift), dtype=torch.float32)], dim=1)
+
+            list_txt = os.path.join(tmpdir, "concat_list.txt")
+            video_only = os.path.join(tmpdir, "video_only.mp4")
+            with open(list_txt, "w", encoding="utf-8") as f:
+                for clip in active_clips:
+                    escaped = os.path.abspath(clip["path"]).replace("\\", "/").replace("'", "'\\''")
+                    f.write(f"file '{escaped}'\n")
+
+            c_proc = subprocess.run(
+                [ffmpeg_exe, "-y", "-hide_banner", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", list_txt, "-an", "-c:v", "copy", video_only],
+                capture_output=True,
+            )
+            if c_proc.returncode != 0:
+                raise RuntimeError(f"ShotVault FFmpeg concat failed: {c_proc.stderr.decode('utf-8', 'replace')}")
+
+            pcm_bytes = np.ascontiguousarray(full_pcm.transpose(0, 1).numpy(), dtype="<f4").tobytes()
+            tmp_master_mp4 = os.path.join(store.master_dir, f"{base_name}.tmp.{os.getpid()}.{uuid.uuid4().hex[:6]}.mp4")
+            mux_cmd = [
+                ffmpeg_exe, "-y", "-hide_banner", "-loglevel", "error",
+                "-i", video_only,
+                "-f", "f32le", "-ar", str(DELIVERY_AUDIO_SR), "-ac", "2", "-i", "pipe:0",
+                "-map", "0:v:0", "-map", "1:a:0",
+                "-c:v", "copy", "-c:a", "aac", "-b:a", "320k", "-shortest", "-movflags", "+faststart",
+                tmp_master_mp4,
+            ]
+            try:
+                m_proc = subprocess.run(mux_cmd, input=pcm_bytes, capture_output=True)
+                if m_proc.returncode != 0:
+                    raise RuntimeError(f"ShotVault single-pass PCM mux failed: {m_proc.stderr.decode('utf-8', 'replace')}")
+                os.replace(tmp_master_mp4, master_mp4)
+            finally:
+                if os.path.exists(tmp_master_mp4):
+                    try:
+                        os.remove(tmp_master_mp4)
+                    except OSError:
+                        pass
+            audio_samples_48k = int(full_pcm.shape[1])
 
     written_fcpxml = ""
     if export_fcpxml:
@@ -416,7 +446,8 @@ def assemble_master(
         "total_clips": len(clips),
         "total_frames": total_frames,
         "expected_duration_sec": round(total_frames / float(fps), 4),
-        "audio_samples_48k": int(full_pcm.shape[1]),
+        "audio_samples_48k": int(audio_samples_48k),
+        "single_clip_fast_copy": bool(can_single_clip_fast_copy),
         "post_mux_offset_ms": float(post_mux_offset_ms),
         "applied_seam_repairs": applied_seam_repairs,
         "warnings": warnings,

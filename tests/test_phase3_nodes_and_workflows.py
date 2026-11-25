@@ -18,10 +18,10 @@ for p in (COMFY_ROOT, CUSTOM_NODES_DIR):
     if p not in sys.path:
         sys.path.insert(0, p)
 
-sv_pkg = importlib.import_module("ComfyUI-Universal-ShotVault")
+sv_pkg = importlib.import_module("ComfyUI-Acheng-ShotVault")
 taper_pkg = importlib.import_module("ComfyUI-H3-Context-Noise")
-grid_math = importlib.import_module("ComfyUI-Universal-ShotVault.core.grid_math")
-vs_mod = importlib.import_module("ComfyUI-Universal-ShotVault.core.vault_store")
+grid_math = importlib.import_module("ComfyUI-Acheng-ShotVault.core.grid_math")
+vs_mod = importlib.import_module("ComfyUI-Acheng-ShotVault.core.vault_store")
 import comfy.nested_tensor  # type: ignore
 
 
@@ -130,7 +130,7 @@ class TestPhase3NodesAndWorkflows(unittest.TestCase):
                 sv2 = save_n.save_take(final_up2, pipe2, auto_queue_next=False, crf=20, codec="h264", final_audio=aud_trim2, clean_images=clean_trim2)
 
                 asm_res = asm_n.assemble("SmokeFilm", "defer_until_complete", "auto_prefer_reference", 15.0, 0.0, True, True, shot_pipe=sv2["result"][2])
-                master_path, fcpxml_path, rep_json = asm_res["result"]
+                master_path, fcpxml_path, rep_json, _ = asm_res["result"]
                 self.assertTrue(os.path.isfile(master_path))
                 self.assertTrue(os.path.isfile(fcpxml_path))
                 self.assertEqual(json.loads(rep_json)["total_frames"], pipe1["keep_frames"] + pipe2["keep_frames"])

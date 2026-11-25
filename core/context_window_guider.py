@@ -35,6 +35,7 @@ MIN_LAST_WINDOW_FRAMES = 56
 SPEECH_PAD_FRAMES = 4
 SPEECH_MIN_WINDOW_GROUPS = 7
 KEYFRAME_WRAPPER_KEY = "shotvault_keyframe_until"
+WINDOW_ANCHOR_START_SIGMA = 0.90
 
 
 @dataclass(frozen=True)
@@ -304,6 +305,59 @@ def add_window_anchor(conds: dict, before: Window, window: Window, video_shape) 
     return placeholder if added else None
 
 
+def apply_window_rope_offset(conds: dict, window: Window) -> int:
+    """Shift target-timeline RoPE `position_ids[:, 0]` on an immutable per-window layout clone.
+
+    Preserves `text`, `ref_img`, and `ref_audio` coordinates at `[0..cursor)` while shifting
+    `video`/`cond` by `FRAME_RESCALE * window.frame_start` and `audio`/`cond_audio` by
+    `float(window.audio_start)` so later windows keep exact global timeline positions rather
+    than resetting RoPE t=0. Never mutates the original layout in place.
+    """
+    if int(window.frame_start) <= 0 and int(window.audio_start) <= 0:
+        return 0
+    import copy
+
+    delta_v = float(FRAME_RESCALE * int(window.frame_start))
+    delta_a = float(int(window.audio_start))
+    shifted = 0
+    for entries in conds.values():
+        for entry in entries:
+            mc = entry.get("model_conds") or {}
+            mp = mc.get("minimax_payload")
+            payload = getattr(mp, "cond", None)
+            if not isinstance(payload, dict):
+                continue
+            layout = payload.get("layout")
+            pos_ids = getattr(layout, "position_ids", None)
+            segments = getattr(layout, "segments", None)
+            if not isinstance(pos_ids, torch.Tensor) or pos_ids.ndim != 2 or pos_ids.shape[1] < 1 or not segments:
+                continue
+            new_pos = pos_ids.clone()
+            for a, b, kind in segments:
+                if kind in ("video", "cond"):
+                    new_pos[a:b, 0] = new_pos[a:b, 0] + delta_v
+                elif kind in ("audio", "cond_audio"):
+                    new_pos[a:b, 0] = new_pos[a:b, 0] + delta_a
+            new_layout = copy.copy(layout)
+            new_layout.position_ids = new_pos
+            new_payload = dict(payload, layout=new_layout)
+            if hasattr(mp, "_copy_with"):
+                mc["minimax_payload"] = mp._copy_with(new_payload)
+            else:
+                mp.cond = new_payload
+            shifted += 1
+    return shifted
+
+
+def _extract_sigma_scalar(timestep: Any) -> float:
+    """Extract normalized `[0.0, 1.0]` flow sigma from `predict_noise` timestep argument."""
+    try:
+        raw = float(timestep.flatten()[0].item()) if isinstance(timestep, torch.Tensor) else float(timestep)
+    except Exception:
+        return 0.0
+    return raw / 1000.0 if raw > 1.5 else raw
+
+
 def anchor_latents(conds: dict, placeholder: torch.Tensor) -> list[torch.Tensor]:
     found = []
     for entries in conds.values():
@@ -518,21 +572,34 @@ def make_window_guider(
                 return comfy.utils.pack_latents([v[:, :, w.video_start:w.video_end], a[..., w.audio_start:w.audio_end]])
 
             self.runs = []
+            self.runs_free = []
             self.anchors = []
             for idx, (w, raw) in enumerate(zip(self.window_set.windows, self.window_raw)):
                 w_noise, w_shapes = window_pack(noise, w)
                 w_lat, _ = window_pack(latent_image, w)
                 w_msk, _ = window_pack(denoise_mask, w)
-                conds = {k: [dict(item) for item in comfy.sampler_helpers.convert_cond(val)] for k, val in raw.items()}
-                ph = add_window_anchor(conds, self.window_set.windows[idx - 1], w, video_shape) if idx > 0 else None
-                conds = comfy.samplers.process_conds(self.inner_model, w_noise, conds, device, w_lat, w_msk, seed, latent_shapes=w_shapes)
-                self.runs.append((w, conds, w_shapes))
-                self.anchors.append(anchor_latents(conds, ph) if ph is not None else [])
+                conds_free_raw = {k: [dict(item) for item in comfy.sampler_helpers.convert_cond(val)] for k, val in raw.items()}
+                conds_free = comfy.samplers.process_conds(self.inner_model, w_noise, conds_free_raw, device, w_lat, w_msk, seed, latent_shapes=w_shapes)
+                apply_window_rope_offset(conds_free, w)
+                if idx > 0:
+                    conds_anc_raw = {k: [dict(item) for item in comfy.sampler_helpers.convert_cond(val)] for k, val in raw.items()}
+                    ph = add_window_anchor(conds_anc_raw, self.window_set.windows[idx - 1], w, video_shape)
+                    conds_anc = comfy.samplers.process_conds(self.inner_model, w_noise, conds_anc_raw, device, w_lat, w_msk, seed, latent_shapes=w_shapes)
+                    apply_window_rope_offset(conds_anc, w)
+                    self.runs.append((w, conds_anc, w_shapes))
+                    self.runs_free.append((w, conds_free, w_shapes))
+                    self.anchors.append(anchor_latents(conds_anc, ph) if ph is not None else [])
+                else:
+                    self.runs.append((w, conds_free, w_shapes))
+                    self.runs_free.append((w, conds_free, w_shapes))
+                    self.anchors.append([])
 
             self.inner_model.latent_shapes = latent_shapes
             anchored = len(self.anchors) > 1 and all(self.anchors[1:])
             self.weights_v = window_weights(self.window_set.windows, "video", late=anchored)
+            self.weights_v_free = window_weights(self.window_set.windows, "video", late=False)
             self.weights_a = window_weights(self.window_set.windows, "audio")
+            self.anchor_start_sigma = float(WINDOW_ANCHOR_START_SIGMA)
             self.conds = self.runs[0][1]
 
             extra_opts = comfy.model_patcher.create_model_options_clone(self.model_options)
@@ -553,10 +620,14 @@ def make_window_guider(
 
         def predict_noise(self, x, timestep, model_options={}, seed=None):
             video, audio = comfy.utils.unpack_latents(x, self.full_shapes)
+            sigma_v = _extract_sigma_scalar(timestep)
+            use_anchor = sigma_v <= self.anchor_start_sigma
+            active_runs = self.runs if use_anchor else self.runs_free
+            active_weights_v = self.weights_v if use_anchor else self.weights_v_free
             parts_v, parts_a = [], []
-            for idx, (w, conds, shapes) in enumerate(self.runs):
-                if idx > 0 and self.anchors[idx]:
-                    before = self.runs[idx - 1][0]
+            for idx, (w, conds, shapes) in enumerate(active_runs):
+                if use_anchor and idx > 0 and self.anchors[idx]:
+                    before = active_runs[idx - 1][0]
                     lead = parts_v[idx - 1][:, :, w.video_start - before.video_start:before.video_len]
                     for anchor in self.anchors[idx]:
                         anchor.copy_(lead.to(device=anchor.device, dtype=anchor.dtype))
@@ -566,7 +637,7 @@ def make_window_guider(
                 out_v, out_a = comfy.utils.unpack_latents(out, shapes)
                 parts_v.append(out_v)
                 parts_a.append(out_a)
-            video = blend(parts_v, self.window_set.windows, self.weights_v, self.window_set.video_total, "video", 2)
+            video = blend(parts_v, self.window_set.windows, active_weights_v, self.window_set.video_total, "video", 2)
             audio = blend(parts_a, self.window_set.windows, self.weights_a, self.window_set.audio_total, "audio", audio.ndim - 1)
             return comfy.utils.pack_latents([video, audio])[0]
 
