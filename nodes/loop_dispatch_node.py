@@ -148,6 +148,7 @@ class ShotVaultLoopDispatch:
             next_sig = ""
         audio_sig = str(((shot_pipe or {}).get("per_shot_audio") or {}).get(curr_idx, {}).get("sha256", ""))
         carry_sig = str(loop_carry.get("last_saved_take_id", "")) if isinstance(loop_carry, dict) else str(loop_carry is not None)
+        gcfg = (shot_pipe or {}).get("global_refs_cfg") or {}
         key = "|".join([
             project_root,
             str(curr_idx),
@@ -156,6 +157,12 @@ class ShotVaultLoopDispatch:
             str(shot.get("overlap_override", 0)),
             str(shot.get("prompt_sha256", "")),
             str(shot.get("ref_slots", shot.get("ref_images", []))),
+            str(shot.get("ref_audio_slots", shot.get("ref_audios", []))),
+            str(shot.get("ref_videos", [])),
+            str(shot.get("inherit_global_refs", True)),
+            str(shot.get("inherit_global_audios", shot.get("inherit_global_refs", True))),
+            str(gcfg.get("global_ref_slots", gcfg.get("global_ref_images", []))),
+            str(gcfg.get("global_ref_audio_slots", gcfg.get("global_ref_audios", []))),
             str(retry_lock if honor_retry else ""),
             str((shot_pipe or {}).get("anti_degradation", "")),
             parent_sig, curr_sig, next_sig, audio_sig, carry_sig,
@@ -368,6 +375,7 @@ class ShotVaultLoopDispatch:
             "slot_to_ordinal": mm_refs.get("slot_to_ordinal") or {},
             "loaded_ref_videos": mm_refs["videos"],
             "loaded_ref_audios": mm_refs["audios"],
+            "audio_slot_to_ordinal": mm_refs.get("audio_slot_to_ordinal") or {},
             "active_ref_summary": mm_refs["summary"],
         })
 

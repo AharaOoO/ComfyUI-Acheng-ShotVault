@@ -184,6 +184,18 @@ class ShotVaultH3Conditioning:
             if isinstance(extra_ref_audio_1, dict) and isinstance(extra_ref_audio_1.get("waveform"), torch.Tensor):
                 raw_audios.append((extra_ref_audio_1, "canvas_audio_1"))
             raw_audios = raw_audios[:3]
+            has_any_vid_audio = any(
+                isinstance(vd.get("audio"), dict) and isinstance(vd["audio"].get("waveform"), torch.Tensor)
+                for vd in raw_videos
+            )
+            aud_slot_map = shot_pipe.get("audio_slot_to_ordinal")
+            if (not has_any_vid_audio) and isinstance(aud_slot_map, dict) and aud_slot_map:
+                if any(int(k) != int(v) for k, v in aud_slot_map.items()):
+                    prompt = re.sub(
+                        r"<Audio\s+(\d+)\s*>",
+                        lambda m: f"<Audio {aud_slot_map[int(m.group(1))]}>" if int(m.group(1)) in aud_slot_map else m.group(0),
+                        prompt,
+                    )
 
         ref_items: list[dict[str, Any]] = []
         ref_blocks: list[dict[str, Any]] = []

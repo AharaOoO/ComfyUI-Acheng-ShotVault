@@ -394,11 +394,13 @@ def handle_parse_preview(payload: dict[str, Any]) -> dict[str, Any]:
             "overlap_override": int(s.get("overlap_override") or 0),
             "segment_only": bool(s.get("segment_only", False)),
             "inherit_global_refs": True,
+            "inherit_global_audios": True,
             "prompt": s["local_prompt"],
             "ref_images": list(s.get("ref_images") or ()),
             "ref_slots": list(s.get("ref_slots") or s.get("ref_images") or ()),
             "ref_videos": list(s.get("ref_videos") or ()),
             "ref_audios": list(s.get("ref_audios") or ()),
+            "ref_audio_slots": list(s.get("ref_audio_slots") or (list(s.get("ref_audios") or ()) + ["", "", ""])[:3]),
             "guide_audio": str(s.get("audio_file") or ""),
         }
         for s in shots

@@ -247,6 +247,22 @@ function normSlots9(slots, imgs) {
   return out;
 }
 
+function normSlots3(slots, auds) {
+  const out = new Array(3).fill("");
+  const src = Array.isArray(slots) && slots.length ? slots : (Array.isArray(auds) ? auds : []);
+  for (let i = 0; i < Math.min(3, src.length); i++) out[i] = String(src[i] || "").trim();
+  return out;
+}
+
+function resolveEffectiveAudioSlots(shot, globalAudioSlots) {
+  const own = normSlots3(shot?.ref_audio_slots, shot?.ref_audios);
+  const inherit = (shot && "inherit_global_audios" in shot)
+    ? (shot.inherit_global_audios !== false)
+    : (shot?.inherit_global_refs !== false);
+  const glob = normSlots3(globalAudioSlots);
+  return own.map((x, k) => x || (inherit ? glob[k] : "") || "");
+}
+
 function parseSingleShotAmpersand(text, fallbackDur = 5.0) {
   let body = String(text || "");
   let dur = Math.max(0.25, Number(fallbackDur || 5.0));
@@ -324,11 +340,13 @@ function splitMasterScript(text, hasSeed = false, defaultDurSec = 5.0) {
       hard_cut: hardCut !== null ? hardCut : (i === 0 ? !hasSeed : false),
       overlap_override: ov,
       inherit_global_refs: true,
+      inherit_global_audios: true,
       seed_text: "",
       prompt,
       ref_slots: new Array(9).fill(""),
       ref_images: [],
       ref_videos: [],
+      ref_audio_slots: new Array(3).fill(""),
       ref_audios: [],
       guide_audio: "",
     };
@@ -414,26 +432,35 @@ function attachPanelController(node) {
     let initPlan = {};
     try { initPlan = JSON.parse(String(getW("director_plan_json", "{}") || "{}")); } catch { initPlan = {}; }
     const defDur = Math.max(0.25, Number(initPlan.default_duration_sec || 5.0));
-    const shots = Array.isArray(initPlan.shots) && initPlan.shots.length ? initPlan.shots.map((s, idx) => ({
-      shot_index: idx + 1,
-      duration_sec: Math.max(0.25, Number(s.duration_sec || defDur)),
-      shot_type: Number(s.shot_type ?? 1) === 0 ? 0 : 1,
-      hard_cut: Boolean(s.hard_cut),
-      overlap_override: [22, 39, 56].includes(Number(s.overlap_override)) ? Number(s.overlap_override) : 0,
-      inherit_global_refs: s.inherit_global_refs !== false,
-      seed_text: String(s.seed_text || ""),
-      prompt: String(s.prompt || ""),
-      ref_slots: normSlots9(s.ref_slots, s.ref_images),
-      ref_images: (s.ref_images || []).filter(Boolean),
-      ref_videos: Array.isArray(s.ref_videos) ? s.ref_videos.slice(0, 3) : [],
-      ref_audios: Array.isArray(s.ref_audios) ? s.ref_audios.slice(0, 3) : [],
-      guide_audio: String(s.guide_audio || ""),
-    })) : splitMasterScript(String(initPlan.master_script_text || getW("script_text", "") || ""), Boolean(getW("seed_video_path", "")), defDur);
+    const shots = Array.isArray(initPlan.shots) && initPlan.shots.length ? initPlan.shots.map((s, idx) => {
+      const aSlots = normSlots3(s.ref_audio_slots, s.ref_audios);
+      const inhAud = ("inherit_global_audios" in s)
+        ? (s.inherit_global_audios !== false)
+        : (s.inherit_global_refs !== false);
+      return {
+        shot_index: idx + 1,
+        duration_sec: Math.max(0.25, Number(s.duration_sec || defDur)),
+        shot_type: Number(s.shot_type ?? 1) === 0 ? 0 : 1,
+        hard_cut: Boolean(s.hard_cut),
+        overlap_override: [22, 39, 56].includes(Number(s.overlap_override)) ? Number(s.overlap_override) : 0,
+        inherit_global_refs: s.inherit_global_refs !== false,
+        inherit_global_audios: inhAud,
+        seed_text: String(s.seed_text || ""),
+        prompt: String(s.prompt || ""),
+        ref_slots: normSlots9(s.ref_slots, s.ref_images),
+        ref_images: (s.ref_images || []).filter(Boolean),
+        ref_videos: Array.isArray(s.ref_videos) ? s.ref_videos.slice(0, 3) : [],
+        ref_audio_slots: aSlots,
+        ref_audios: aSlots.filter(Boolean),
+        guide_audio: String(s.guide_audio || ""),
+      };
+    }) : splitMasterScript(String(initPlan.master_script_text || getW("script_text", "") || ""), Boolean(getW("seed_video_path", "")), defDur);
     if (!shots.length) {
       shots.push({
         shot_index: 1, duration_sec: defDur, shot_type: 1, hard_cut: !getW("seed_video_path", ""),
-        overlap_override: 0, inherit_global_refs: true, seed_text: "", prompt: "",
-        ref_slots: new Array(9).fill(""), ref_images: [], ref_videos: [], ref_audios: [], guide_audio: "",
+        overlap_override: 0, inherit_global_refs: true, inherit_global_audios: true, seed_text: "", prompt: "",
+        ref_slots: new Array(9).fill(""), ref_images: [], ref_videos: [],
+        ref_audio_slots: new Array(3).fill(""), ref_audios: [], guide_audio: "",
       });
     }
     const explicitMode = typeof initPlan.audio_drive_mode === "string" ? initPlan.audio_drive_mode : "";
@@ -444,6 +471,7 @@ function attachPanelController(node) {
       : (inferredAudio ? "per_shot_audio_dir" : "none");
     const hasAudio = finalAudioMode !== "none";
     const rawCtx = Number(initPlan.context_frames || getW("context_frames", 22));
+    const gAudSlots = normSlots3(initPlan.global_ref_audio_slots, initPlan.global_ref_audios);
     return {
       master_script_text: String(initPlan.master_script_text || getW("script_text", "") || ""),
       auto_sync_master: initPlan.auto_sync_master !== false,
@@ -453,7 +481,8 @@ function attachPanelController(node) {
       seed_video_path: String(initPlan.seed_video_path || getW("seed_video_path", "") || ""),
       seed_trim_end_sec: Number(initPlan.seed_trim_end_sec ?? getW("seed_trim_end_sec", 0) ?? 0),
       global_ref_slots: normSlots9(initPlan.global_ref_slots, initPlan.global_ref_images),
-      global_ref_audios: Array.isArray(initPlan.global_ref_audios) ? initPlan.global_ref_audios.slice(0, 3) : [],
+      global_ref_audio_slots: gAudSlots,
+      global_ref_audios: gAudSlots.filter(Boolean),
       retry_lock: {
         enabled: Boolean(initPlan.retry_lock?.enabled),
         shot_index: Math.max(1, Number(initPlan.retry_lock?.shot_index || 1)),
@@ -526,23 +555,27 @@ function attachPanelController(node) {
     else if (![22, 39, 56].includes(Number(p.context_frames))) p.context_frames = 22;
     const shotsOut = p.shots.map((s, i) => {
       const slots = normSlots9(s.ref_slots, s.ref_images);
+      const aSlots = normSlots3(s.ref_audio_slots, s.ref_audios);
       const ov = audioOn ? 0 : Number(s.overlap_override || 0);
       return {
         shot_index: i + 1, duration_sec: Number(s.duration_sec || p.default_duration_sec || 5.0), shot_type: Number(s.shot_type ?? 1),
         hard_cut: Boolean(s.hard_cut), overlap_override: ov,
-        inherit_global_refs: s.inherit_global_refs !== false, seed_text: String(s.seed_text || ""),
+        inherit_global_refs: s.inherit_global_refs !== false,
+        inherit_global_audios: s.inherit_global_audios !== false,
+        seed_text: String(s.seed_text || ""),
         prompt: String(s.prompt || ""), ref_slots: slots, ref_images: slots.filter(Boolean),
-        ref_videos: s.ref_videos || [], ref_audios: s.ref_audios || [], guide_audio: String(s.guide_audio || ""),
+        ref_videos: s.ref_videos || [], ref_audio_slots: aSlots, ref_audios: aSlots.filter(Boolean), guide_audio: String(s.guide_audio || ""),
       };
     });
     const gSlots = normSlots9(p.global_ref_slots);
+    const gAudSlots = normSlots3(p.global_ref_audio_slots, p.global_ref_audios);
     const jsonObj = {
       master_script_text: p.master_script_text, auto_sync_master: p.auto_sync_master,
       default_duration_sec: Number(p.default_duration_sec || 5.0),
       audio_drive_mode: p.audio_drive_mode,
       context_frames: audioOn ? 39 : Number(p.context_frames || 22), seed_video_path: p.seed_video_path, seed_trim_end_sec: p.seed_trim_end_sec,
       global_ref_slots: gSlots, global_ref_images: gSlots.filter(Boolean),
-      global_ref_audios: p.global_ref_audios || [], retry_lock: p.retry_lock,
+      global_ref_audio_slots: gAudSlots, global_ref_audios: gAudSlots.filter(Boolean), retry_lock: p.retry_lock,
       anti_degradation: p.anti_degradation || { mode: "standard", noise_keep_ratio: 0.40, static_bg_pull: 0.20 },
       shots: shotsOut,
     };
@@ -636,15 +669,18 @@ function attachPanelController(node) {
     state.plan.shots = parsed.map((ns, i) => {
       const old = preserveMedia ? state.plan.shots[i] : null;
       if (!old) return ns;
+      const oldAudSlots = normSlots3(old.ref_audio_slots, old.ref_audios);
       return {
         ...ns,
         overlap_override: isAudioMode() ? 0 : (ns.overlap_override || old.overlap_override || 0),
         inherit_global_refs: old.inherit_global_refs !== false,
+        inherit_global_audios: ("inherit_global_audios" in old) ? (old.inherit_global_audios !== false) : (old.inherit_global_refs !== false),
         seed_text: old.seed_text || "",
         ref_slots: normSlots9(old.ref_slots, old.ref_images),
         ref_images: old.ref_images || [],
         ref_videos: old.ref_videos || [],
-        ref_audios: old.ref_audios || [],
+        ref_audio_slots: oldAudSlots,
+        ref_audios: oldAudSlots.filter(Boolean),
         guide_audio: old.guide_audio || "",
       };
     });
@@ -910,6 +946,109 @@ function attachPanelController(node) {
     return grid;
   }
 
+  let previewAud = null;
+  let previewPath = "";
+  function stopAudioPreview() {
+    if (previewAud) {
+      try { previewAud.pause(); previewAud.src = ""; } catch {}
+      previewAud = null;
+    }
+    previewPath = "";
+  }
+  function toggleAudioPreview(relPath, onStateChange) {
+    const p = String(relPath || "").trim();
+    if (!p) return;
+    if (previewAud && previewPath === p && !previewAud.paused) {
+      stopAudioPreview();
+      onStateChange?.();
+      return;
+    }
+    stopAudioPreview();
+    try {
+      const aud = new Audio(mediaUrl(p));
+      previewAud = aud;
+      previewPath = p;
+      aud.onended = () => { if (previewAud === aud) { previewAud = null; previewPath = ""; onStateChange?.(); } };
+      aud.onerror = () => { if (previewAud === aud) { previewAud = null; previewPath = ""; onStateChange?.(); } };
+      aud.play().catch(() => { if (previewAud === aud) { previewAud = null; previewPath = ""; onStateChange?.(); } });
+      onStateChange?.();
+    } catch {
+      stopAudioPreview();
+      onStateChange?.();
+    }
+  }
+
+  function render3AudioSlotGrid(slots, globalSlots, inheritGlobal, muted, onUpdate, subfolder, onRerender) {
+    const grid = el("div", { class: "sv-aud-grid3" });
+    const ownSlots = normSlots3(slots);
+    const globSlots = normSlots3(globalSlots);
+    for (let k = 0; k < 3; k++) {
+      const own = ownSlots[k];
+      const gVal = inheritGlobal && globalSlots ? globSlots[k] : "";
+      const eff = own || gVal;
+      const fn = eff ? eff.split("/").pop() : "";
+      const isPlaying = Boolean(eff && previewAud && !previewAud.paused && previewPath === eff);
+      const cls = `sv-aud-slot${muted ? " muted" : ""}${own ? " own" : (gVal ? " inh" : "")}`;
+      const box = el("div", { class: cls });
+      if (!muted) {
+        box.ondragover = (e) => { e.preventDefault(); box.style.borderColor = "#2f6df6"; };
+        box.ondragleave = () => { box.style.borderColor = ""; };
+        box.ondrop = async (e) => {
+          e.preventDefault();
+          box.style.borderColor = "";
+          const f = e.dataTransfer?.files?.[0];
+          if (!f) return;
+          try {
+            const res = await uploadMediaFile(f, subfolder);
+            onUpdate(k, res.rel_path);
+            showToast(t("toast_ref_audio_added", { name: res.rel_path.split("/").pop() }));
+          } catch (err) { showToast(t("toast_upload_failed", { msg: err?.message || err }), true); }
+        };
+      }
+      const badgeTxt = own
+        ? t("aud_slot_own", { k: k + 1 })
+        : (gVal ? t("aud_slot_inherited", { k: k + 1 }) : `<Audio ${k + 1}>`);
+      const top = el("div", { class: "sv-aud-top" }, [
+        el("span", { style: { fontWeight: "600", color: own ? "#8df2c2" : (gVal ? "#9cc2ff" : "#8c95ad") }, text: badgeTxt }),
+        el("div", { class: "sv-row", style: { gap: "3px" } }, [
+          eff && !muted ? el("button", {
+            class: `sv-btn xs ${isPlaying ? "warn" : ""}`,
+            title: t("title_play_audio"),
+            text: isPlaying ? t("btn_stop_audio") : t("btn_play_audio"),
+            onclick: (e) => { e.stopPropagation(); toggleAudioPreview(eff, onRerender); },
+          }) : null,
+          own && !muted ? el("button", {
+            class: "sv-btn dng xs",
+            text: "×",
+            onclick: (e) => {
+              e.stopPropagation();
+              if (previewPath === own) stopAudioPreview();
+              onUpdate(k, "");
+            },
+          }) : null,
+        ]),
+      ]);
+      const nameRow = el("div", {
+        class: `sv-aud-name${eff ? "" : " empty"}`,
+        title: eff ? eff : t("aud_slot_upload_title", { k: k + 1 }),
+        text: eff ? fn : t("aud_slot_empty", { k: k + 1 }),
+        onclick: () => {
+          if (muted) return;
+          pickLocalFile("audio/*", async (f) => {
+            try {
+              const res = await uploadMediaFile(f, subfolder);
+              onUpdate(k, res.rel_path);
+              showToast(t("toast_ref_audio_added", { name: res.rel_path.split("/").pop() }));
+            } catch (err) { showToast(t("toast_upload_failed", { msg: err?.message || err }), true); }
+          });
+        },
+      });
+      box.append(top, nameRow);
+      grid.appendChild(box);
+    }
+    return grid;
+  }
+
   function renderFilmstrip() {
     if (!stripWrap) return;
     stripWrap.innerHTML = "";
@@ -922,6 +1061,7 @@ function attachPanelController(node) {
       const thumbSrc = actTake?.thumb_rel ? mediaUrl(actTake.thumb_rel, String(getW("project_name", "MyH3Film"))) : (effImg ? mediaUrl(effImg) : "");
       const isAct = Number(s.shot_type ?? 1) === 1;
       const audioOn = isAudioMode();
+      const effAudCnt = audioOn ? 0 : resolveEffectiveAudioSlots(s, state.plan.global_ref_audio_slots).filter(Boolean).length;
       const effGear = audioOn ? 39 : (s.overlap_override || state.plan.context_frames);
       const card = el("div", {
         class: `sv-card ${state.sel === idx ? "on" : ""}`,
@@ -950,7 +1090,7 @@ function attachPanelController(node) {
         text: extractCardSnippet(s.prompt, 36),
       });
       const meta = el("div", { style: { fontSize: "10px", color: "#7f889e", display: "flex", justifyContent: "space-between" } }, [
-        el("span", { text: `🖼 ${ownCnt}/9` }),
+        el("span", { text: `🖼 ${ownCnt}/9 · ${audioOn ? "🔇" : `🔊 ${effAudCnt}/3`}` }),
         el("span", { text: sv?.status || "UNRENDERED" }),
       ]);
       card.append(th, badges, sn, meta);
@@ -1147,24 +1287,6 @@ function attachPanelController(node) {
       }),
       s.guide_audio ? el("button", { class: "sv-btn dng", text: t("btn_clear_audio"), onclick: () => { s.guide_audio = ""; scheduleSync(true); renderAll(); } }) : null,
       el("button", {
-        class: `sv-btn ${!audioOnChips && (s.ref_audios || []).length ? "ok" : ""}`,
-        disabled: audioOnChips,
-        style: audioOnChips ? { opacity: "0.5", cursor: "not-allowed" } : {},
-        text: audioOnChips ? t("btn_ref_audio_muted") : t("btn_ref_audio", { n: (s.ref_audios || []).length }),
-        onclick: () => {
-          if (audioOnChips) return;
-          pickLocalFile("audio/*", async (f) => {
-            const r = await uploadMediaFile(f, `shotvault/shot_${idx + 1}`);
-            s.ref_audios = [...(s.ref_audios || []), r.rel_path].slice(-3);
-            scheduleSync();
-            renderShotEditor();
-            showToast(t("toast_ref_audio_added", { name: r.rel_path.split("/").pop() }));
-          });
-        },
-      }),
-      (s.ref_audios || []).length ? el("button", { class: "sv-btn dng", text: t("btn_clear_voice"), onclick: () => { s.ref_audios = []; scheduleSync(); renderShotEditor(); } }) : null,
-      audioOnChips ? el("span", { class: "sv-link-lbl", text: t("lbl_audio_drive_mute") }) : null,
-      el("button", {
         class: `sv-btn ${(s.ref_videos || []).length ? "ok" : ""}`,
         text: t("btn_ref_video", { n: (s.ref_videos || []).length }),
         onclick: () => pickLocalFile("video/*", async (f) => {
@@ -1179,16 +1301,6 @@ function attachPanelController(node) {
     ]);
 
     const mmChips = [];
-    (s.ref_audios || []).forEach((ap, ai) => {
-      const fn = String(ap || "").split("/").pop();
-      mmChips.push(el("span", { class: "sv-chip", style: audioOnChips ? { opacity: "0.55" } : {} }, [
-        `${audioOnChips ? t("lbl_muted_prefix") : ""}<Audio ${ai + 1}> ${fn} `,
-        el("button", {
-          class: "sv-btn dng", style: { padding: "0 4px", fontSize: "10px" }, text: "×",
-          onclick: (e) => { e.stopPropagation(); s.ref_audios.splice(ai, 1); scheduleSync(); renderShotEditor(); },
-        }),
-      ]));
-    });
     (s.ref_videos || []).forEach((vp, vi) => {
       const vObj = typeof vp === "string" ? { path: vp, with_audio: true } : (vp || {});
       const fn = String(vObj.path || "").split("/").pop();
@@ -1199,7 +1311,7 @@ function attachPanelController(node) {
           : el("label", { style: { display: "inline-flex", alignItems: "center", gap: "2px", fontSize: "10px", cursor: "pointer" } }, [
               el("input", {
                 type: "checkbox", checked: vObj.with_audio !== false,
-                onchange: (e) => { s.ref_videos[vi] = { path: vObj.path, with_audio: e.target.checked }; scheduleSync(); },
+                onchange: (e) => { s.ref_videos[vi] = { path: vObj.path, with_audio: e.target.checked }; scheduleSync(); renderShotEditor(); },
               }),
               t("lbl_with_audio"),
             ]),
@@ -1211,8 +1323,104 @@ function attachPanelController(node) {
     });
     const mmChipBar = mmChips.length ? el("div", { class: "sv-chips" }, mmChips) : null;
 
+    s.ref_audio_slots = normSlots3(s.ref_audio_slots, s.ref_audios);
+    const ownAudAny = s.ref_audio_slots.some(Boolean);
+    const vidWithAudioCnt = (s.ref_videos || []).filter((vp) => {
+      const vObj = typeof vp === "string" ? { path: vp, with_audio: true } : (vp || {});
+      return Boolean(String(vObj.path || "").trim()) && vObj.with_audio !== false;
+    }).length;
+    const voiceHdr = el("div", { class: "sv-box-hdr" }, [
+      el("span", { text: t("lbl_shot_audio_slots", { i: idx + 1 }) }),
+      el("div", { class: "sv-row", style: { gap: "4px" } }, [
+        el("label", { class: "sv-row", style: { gap: "4px", fontWeight: "normal", cursor: "pointer" } }, [
+          el("input", {
+            type: "checkbox",
+            checked: s.inherit_global_audios !== false,
+            disabled: audioOnChips,
+            onchange: (e) => { s.inherit_global_audios = e.target.checked; scheduleSync(); renderFilmstrip(); renderShotEditor(); },
+          }),
+          el("span", { text: t("lbl_inherit_global_audios") }),
+        ]),
+        el("button", {
+          class: "sv-btn act xs",
+          disabled: audioOnChips,
+          style: audioOnChips ? { opacity: "0.5", cursor: "not-allowed" } : {},
+          text: t("btn_copy_voices_forward"),
+          onclick: () => {
+            if (audioOnChips) return;
+            if (idx >= state.plan.shots.length - 1) return showToast(t("toast_already_last"));
+            const resolved = resolveEffectiveAudioSlots(s, state.plan.global_ref_audio_slots);
+            if (!resolved.some(Boolean)) return showToast(t("toast_no_voices_to_copy"), true);
+            for (let j = idx + 1; j < state.plan.shots.length; j++) {
+              state.plan.shots[j].ref_audio_slots = [...resolved];
+              state.plan.shots[j].ref_audios = resolved.filter(Boolean);
+            }
+            scheduleSync(true);
+            renderFilmstrip();
+            showToast(t("toast_voices_copied_forward", { i: idx + 1, n: state.plan.shots.length - idx - 1 }));
+          },
+        }),
+        el("button", {
+          class: "sv-btn pri xs",
+          disabled: audioOnChips,
+          style: audioOnChips ? { opacity: "0.5", cursor: "not-allowed" } : {},
+          text: t("btn_apply_voices_all"),
+          onclick: () => {
+            if (audioOnChips) return;
+            const resolved = resolveEffectiveAudioSlots(s, state.plan.global_ref_audio_slots);
+            if (!resolved.some(Boolean)) return showToast(t("toast_no_voices_to_copy"), true);
+            state.plan.global_ref_audio_slots = [...resolved];
+            state.plan.global_ref_audios = resolved.filter(Boolean);
+            state.plan.shots.forEach((sh) => {
+              sh.inherit_global_audios = true;
+              sh.ref_audio_slots = new Array(3).fill("");
+              sh.ref_audios = [];
+            });
+            scheduleSync(true);
+            renderFilmstrip();
+            renderShotEditor();
+            showToast(t("toast_voices_applied_all", { i: idx + 1, n: state.plan.shots.length }));
+          },
+        }),
+        ownAudAny ? el("button", {
+          class: "sv-btn dng xs",
+          text: t("btn_clear_voice"),
+          onclick: () => {
+            s.ref_audio_slots = new Array(3).fill("");
+            s.ref_audios = [];
+            scheduleSync();
+            renderFilmstrip();
+            renderShotEditor();
+          },
+        }) : null,
+      ]),
+    ]);
+    const voiceGrid = render3AudioSlotGrid(
+      s.ref_audio_slots,
+      state.plan.global_ref_audio_slots,
+      s.inherit_global_audios !== false,
+      audioOnChips,
+      (k, val) => {
+        s.ref_audio_slots[k] = val;
+        s.ref_audios = s.ref_audio_slots.filter(Boolean);
+        scheduleSync();
+        renderFilmstrip();
+        renderShotEditor();
+      },
+      `shotvault/shot_${idx + 1}`,
+      () => renderShotEditor(),
+    );
+    const voiceBox = el("div", { class: "sv-aud-box" }, [
+      voiceHdr,
+      audioOnChips ? el("span", { class: "sv-link-lbl", text: t("lbl_audio_drive_mute") }) : null,
+      voiceGrid,
+      (!audioOnChips && vidWithAudioCnt > 0)
+        ? el("div", { class: "sv-aud-warn", text: t("warn_video_audio_shift", { n: vidWithAudioCnt }) })
+        : null,
+    ]);
+
     const leftPane = el("div", { class: "sv-shot-pane" }, [promptHdr, promptWrap, chips, mmRow, mmChipBar]);
-    const rightPane = el("div", { class: "sv-shot-pane" }, [refBar, grid9]);
+    const rightPane = el("div", { class: "sv-shot-pane" }, [refBar, grid9, voiceBox]);
     appendSafe(editorWrap, topCtrl, el("div", { class: "sv-shot-split" }, [leftPane, rightPane]));
   }
 
@@ -1326,10 +1534,21 @@ function attachPanelController(node) {
                 });
                 const d = await r.json();
                 if (d?.ok && Array.isArray(d.shots) && d.shots.length) {
-                  state.plan.shots = d.shots.map((x, i) => ({
-                    ...(state.plan.shots[i] || {}), ...x,
-                    ref_slots: normSlots9(x.ref_slots, state.plan.shots[i]?.ref_slots || x.ref_images),
-                  }));
+                  state.plan.shots = d.shots.map((x, i) => {
+                    const oldS = state.plan.shots[i] || {};
+                    const xAud = normSlots3(x.ref_audio_slots, x.ref_audios);
+                    const aSlots = xAud.some(Boolean) ? xAud : normSlots3(oldS.ref_audio_slots, oldS.ref_audios);
+                    const inhAud = ("inherit_global_audios" in oldS)
+                      ? (oldS.inherit_global_audios !== false)
+                      : (x.inherit_global_audios !== false);
+                    return {
+                      ...oldS, ...x,
+                      inherit_global_audios: inhAud,
+                      ref_slots: normSlots9(x.ref_slots, oldS.ref_slots || x.ref_images),
+                      ref_audio_slots: aSlots,
+                      ref_audios: aSlots.filter(Boolean),
+                    };
+                  });
                   scheduleSync(true); renderFilmstrip(); renderShotEditor(); showToast(t("toast_backend_parsed", { n: d.shots.length }));
                 }
               } catch (err) { showToast(t("toast_parse_failed", { msg: err.message })); }
@@ -1390,8 +1609,9 @@ function attachPanelController(node) {
             onclick: () => {
               state.plan.shots.push({
                 shot_index: state.plan.shots.length + 1, duration_sec: Number(state.plan.default_duration_sec || 5.0), shot_type: 1, hard_cut: false,
-                overlap_override: 0, inherit_global_refs: true, seed_text: "", prompt: "",
-                ref_slots: new Array(9).fill(""), ref_images: [], ref_videos: [], ref_audios: [], guide_audio: "",
+                overlap_override: 0, inherit_global_refs: true, inherit_global_audios: true, seed_text: "", prompt: "",
+                ref_slots: new Array(9).fill(""), ref_images: [], ref_videos: [],
+                ref_audio_slots: new Array(3).fill(""), ref_audios: [], guide_audio: "",
               });
               state.sel = state.plan.shots.length - 1;
               scheduleSync(true); renderFilmstrip(); renderShotEditor(); patchFooter();
@@ -2179,6 +2399,9 @@ function attachPanelController(node) {
         : el("div", { class: "sv-thumb", style: { height: "160px" }, text: t("ph_shot0_empty") }),
     ]);
 
+    p.global_ref_audio_slots = normSlots3(p.global_ref_audio_slots, p.global_ref_audios);
+    const gAudMuted = isAudioMode();
+    const gAudHasAny = p.global_ref_audio_slots.some(Boolean);
     const right = el("div", { class: "sv-box" }, [
       el("div", { class: "sv-box-hdr" }, [
         el("span", { text: t("t3_right_hdr") }),
@@ -2191,26 +2414,55 @@ function attachPanelController(node) {
         }),
       ]),
       render9SlotGrid(p.global_ref_slots, null, false, (k, v) => { p.global_ref_slots[k] = v; scheduleSync(); renderBody(); }, "shotvault/global"),
-      el("div", { class: "sv-row" }, [
-        el("button", {
-          class: "sv-btn",
-          disabled: isAudioMode(),
-          style: isAudioMode() ? { opacity: "0.5", cursor: "not-allowed" } : {},
-          text: isAudioMode() ? t("btn_global_audio_muted") : t("btn_global_audio", { n: p.global_ref_audios.length }),
-          onclick: () => {
-            if (isAudioMode()) return;
-            pickLocalFile("audio/*", async (f) => { const r = await uploadMediaFile(f, "shotvault/global"); p.global_ref_audios = [...p.global_ref_audios, r.rel_path].slice(-3); scheduleSync(); renderBody(); });
+      el("div", { class: "sv-aud-box", style: { marginTop: "6px" } }, [
+        el("div", { class: "sv-box-hdr" }, [
+          el("span", { text: t("lbl_global_voice_hdr") }),
+          el("div", { class: "sv-row", style: { gap: "4px" } }, [
+            el("button", {
+              class: "sv-btn act xs",
+              disabled: gAudMuted,
+              style: gAudMuted ? { opacity: "0.5", cursor: "not-allowed" } : {},
+              text: t("btn_copy_global_voices"),
+              onclick: () => {
+                if (gAudMuted) return;
+                const gSlots = normSlots3(p.global_ref_audio_slots, p.global_ref_audios);
+                if (!gSlots.some(Boolean)) return showToast(t("toast_no_voices_to_copy"), true);
+                p.shots.forEach((sh) => {
+                  sh.ref_audio_slots = [...gSlots];
+                  sh.ref_audios = gSlots.filter(Boolean);
+                });
+                scheduleSync(true);
+                showToast(t("toast_global_voices_copied", { n: p.shots.length }));
+              },
+            }),
+            gAudHasAny ? el("button", {
+              class: "sv-btn dng xs",
+              text: t("btn_clear_global_voice"),
+              onclick: () => {
+                p.global_ref_audio_slots = new Array(3).fill("");
+                p.global_ref_audios = [];
+                scheduleSync();
+                renderBody();
+              },
+            }) : null,
+          ]),
+        ]),
+        gAudMuted ? el("span", { class: "sv-link-lbl", text: t("lbl_mv_muted") }) : null,
+        render3AudioSlotGrid(
+          p.global_ref_audio_slots,
+          null,
+          false,
+          gAudMuted,
+          (k, v) => {
+            p.global_ref_audio_slots[k] = v;
+            p.global_ref_audios = p.global_ref_audio_slots.filter(Boolean);
+            scheduleSync();
+            renderBody();
           },
-        }),
-        isAudioMode() ? el("span", { class: "sv-link-lbl", text: t("lbl_mv_muted") }) : null,
-        p.global_ref_audios.length ? el("button", { class: "sv-btn dng", text: t("btn_clear_global_voice"), onclick: () => { p.global_ref_audios = []; scheduleSync(); renderBody(); } }) : null,
+          "shotvault/global",
+          () => renderBody(),
+        ),
       ]),
-      p.global_ref_audios.length
-        ? el("div", { class: "sv-chips" }, p.global_ref_audios.map((ap, ai) => el("span", { class: "sv-chip" }, [
-            t("lbl_global_voice_item", { i: ai + 1, name: String(ap || "").split("/").pop() }),
-            el("button", { class: "sv-btn dng", style: { padding: "0 4px", fontSize: "10px" }, text: "×", onclick: () => { p.global_ref_audios.splice(ai, 1); scheduleSync(); renderBody(); } }),
-          ])))
-        : null,
     ]);
     bodyEl.append(el("div", { class: "sv-grid2" }, [left, right]));
   }
@@ -2424,12 +2676,12 @@ function attachPanelController(node) {
     if (!canScroll) app.canvas?.processMouseWheel?.(e);
   }, { passive: true });
   root.addEventListener("pointerdown", (e) => {
-    if (e.target?.closest?.("button, input, textarea, select, label, summary, video, a, .sv-ta-grip, .sv-modal-bg, .sv-modal, .sv-slot, .sv-card, .sv-tab, .sv-chip")) {
+    if (e.target?.closest?.("button, input, textarea, select, label, summary, video, a, .sv-ta-grip, .sv-modal-bg, .sv-modal, .sv-slot, .sv-aud-slot, .sv-card, .sv-tab, .sv-chip")) {
       e.stopPropagation();
     }
   });
   root.addEventListener("mousedown", (e) => {
-    if (e.target?.closest?.("button, input, textarea, select, label, summary, video, a, .sv-ta-grip, .sv-modal-bg, .sv-modal, .sv-slot, .sv-card, .sv-tab, .sv-chip")) {
+    if (e.target?.closest?.("button, input, textarea, select, label, summary, video, a, .sv-ta-grip, .sv-modal-bg, .sv-modal, .sv-slot, .sv-aud-slot, .sv-card, .sv-tab, .sv-chip")) {
       e.stopPropagation();
     }
   });
@@ -2458,6 +2710,7 @@ function attachPanelController(node) {
   window.addEventListener("acheng:lang-change", onLangChange);
   const origRemoved = node.onRemoved;
   node.onRemoved = function (...args) {
+    stopAudioPreview();
     window.removeEventListener("acheng:lang-change", onLangChange);
     return origRemoved?.apply(this, args);
   };

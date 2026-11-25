@@ -9,7 +9,7 @@
 </p>
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Release](https://img.shields.io/badge/Release-v5.8.3-emerald.svg)](https://github.com/AharaOoO/ComfyUI-Acheng-ShotVault/releases)
+[![Release](https://img.shields.io/badge/Release-v5.8.4-emerald.svg)](https://github.com/AharaOoO/ComfyUI-Acheng-ShotVault/releases)
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-Custom%20Nodes-orange.svg)](https://github.com/comfyanonymous/ComfyUI)
 [![Python](https://img.shields.io/badge/Python-%E2%89%A53.10-3776AB.svg)](https://www.python.org/)
 
@@ -48,7 +48,7 @@ flowchart LR
 
 | Subsystem | Production Bottleneck Solved | v5.8 Implementation |
 | :--- | :--- | :--- |
-| **Visual Shot Planner (`ShotVaultPlan`)** | Managing long multi-shot scripts, mixing action & drama LoRA chains, or rerolling a single shot without rebuilding the graph | Interactive in-node console supporting `&duration&` + `===` auto-splitting, explicit `@cut@` / `@continue@` lineage markers, per-shot Action/Drama routing, 9-slot image references, clamped fluid node resizing (`Compact / Standard / Wide`), full-screen Focus Prompt Editor (`Ctrl+Enter` to save), and live `EN / 中文` UI toggle |
+| **Visual Shot Planner (`ShotVaultPlan`)** | Managing long multi-shot scripts, mixing action & drama LoRA chains, or rerolling a single shot without rebuilding the graph | Interactive in-node console supporting `&duration&` + `===` auto-splitting, explicit `@cut@` / `@continue@` lineage markers, per-shot Action/Drama routing, 9-slot image references & 3-slot voice references (`<Audio 1..3>`) with inline audio preview and one-click forward/global reuse, clamped fluid node resizing (`Compact / Standard / Wide`), full-screen Focus Prompt Editor (`Ctrl+Enter` to save), and live `EN / 中文` UI toggle |
 | **Bidirectional Bridge Single-Shot Reroll (`0 / 1 / 5 / 22f`)** | Rerolling a middle shot breaks continuity with the next shot and invalidates the entire downstream chain | Anchors **both** the previous shot's tail context and the next shot's clean delivered head frames (decoded directly from post-trim `shots/*.mp4`, zero chroma-noise contamination), aligned to H3's `17k+5` latent grid & `cycle_pos == 0`; optional `22f` reverse-taper noise (`alpha=0.0` at seam `pos=0`); automatically restores downstream `VALID` lineage |
 | **Manifest-Verified Master Export Sync** | Switching takes, rerolling a shot, or restarting ComfyUI leaves `master.mp4` silently stale | Every master export atomically writes a sidecar `.manifest.json` snapshot; supports optional **auto-reassemble after reroll**; header CTA highlights outdated status and the Export Modal guards against accidentally downloading stale MP4s |
 | **Fixed-Camera Anti-Degradation** | Static-camera / talking-head scenes suffer generation loss and chroma noise buildup across repeated `@continue@` chains | Three configurable anti-degradation modes (Standard / Gentle / Strong Static-BG Preserve) plus periodic `@cut@` reset tooling to refresh clean reference anchors |

@@ -238,8 +238,10 @@ def _parse_1114_markdown(
             "ref_images": ref_images[:9],
             "ref_slots": list(ref_images[:9]),
             "ref_videos": ref_videos,
-            "ref_audios": ref_audios,
+            "ref_audios": ref_audios[:3],
+            "ref_audio_slots": _norm_audio_slots(None, ref_audios),
             "inherit_global_refs": True,
+            "inherit_global_audios": True,
             "speech_spans": _extract_speech_spans(clean_body, fps),
             "local_prompt": clean_body,
             "prompt": full_prompt,
@@ -365,6 +367,15 @@ def _norm_slots(raw_slots: Any, fallback: Any = ()) -> list[str]:
     return out
 
 
+def _norm_audio_slots(raw_slots: Any, raw_audios: Any) -> list[str]:
+    """Normalize voice reference slots to a fixed 3-element list (`<Audio 1..3>`)."""
+    out = ["", "", ""]
+    src = raw_slots if isinstance(raw_slots, list) and len(raw_slots) > 0 else (raw_audios if isinstance(raw_audios, list) else [])
+    for k in range(min(3, len(src))):
+        out[k] = str(src[k] or "").strip()
+    return out
+
+
 def parse_director_plan_json(
     director_plan_json: str,
     common_prompt: str = "",
@@ -389,6 +400,11 @@ def parse_director_plan_json(
     glob_imgs = [x for x in glob_slots if x] if has_glob_slots else [
         str(x).strip() for x in (obj.get("global_ref_images") or ()) if str(x).strip()
     ][:9]
+    has_glob_aud_slots = "global_ref_audio_slots" in obj
+    glob_aud_slots = _norm_audio_slots(obj.get("global_ref_audio_slots"), obj.get("global_ref_audios"))
+    glob_auds = [x for x in glob_aud_slots if x] if has_glob_aud_slots else [
+        str(x).strip() for x in (obj.get("global_ref_audios") or ()) if str(x).strip()
+    ][:3]
     ctx_raw = obj.get("context_frames")
     ctx_val = int(ctx_raw) if str(ctx_raw or "").isdigit() and int(ctx_raw) in (22, 39, 56) else 0
     audio_mode_raw = str(obj.get("audio_drive_mode") or "").strip()
@@ -439,7 +455,7 @@ def parse_director_plan_json(
         "seed_video_path": seed_path,
         "seed_trim_end_sec": float(obj.get("seed_trim_end_sec") or 0.0),
         "global_ref_images": glob_imgs,
-        "global_ref_audios": [str(x).strip() for x in (obj.get("global_ref_audios") or ()) if str(x).strip()][:3],
+        "global_ref_audios": glob_auds,
         "context_frames": ctx_val,
         "audio_drive_mode": audio_mode_raw,
         "default_duration_sec": default_dur,
@@ -450,6 +466,8 @@ def parse_director_plan_json(
     }
     if has_glob_slots:
         global_cfg["global_ref_slots"] = glob_slots
+    if has_glob_aud_slots:
+        global_cfg["global_ref_audio_slots"] = glob_aud_slots
 
     raw_shots = obj.get("shots")
     if (not isinstance(raw_shots, list) or not raw_shots) and global_cfg["master_script_text"].strip():
@@ -492,6 +510,15 @@ def parse_director_plan_json(
             if has_shot_slots
             else [str(x).strip() for x in (item.get("ref_images") or ()) if str(x).strip()][:9]
         )
+        has_shot_aud_slots = "ref_audio_slots" in item
+        shot_aud_slots = _norm_audio_slots(item.get("ref_audio_slots"), item.get("ref_audios")) if (has_shot_aud_slots or has_glob_aud_slots) else None
+        shot_auds = (
+            [x for x in (shot_aud_slots or ()) if x][:3]
+            if has_shot_aud_slots
+            else [str(x).strip() for x in (item.get("ref_audios") or ()) if str(x).strip()][:3]
+        )
+        inherit_refs = bool(item.get("inherit_global_refs", True))
+        inherit_auds = bool(item["inherit_global_audios"]) if "inherit_global_audios" in item else inherit_refs
 
         local_prompt = str(item.get("prompt") or "").strip()
         full_prompt = _combine_prompt(common_prompt, local_prompt)
@@ -511,8 +538,9 @@ def parse_director_plan_json(
             "audio_file": guide_audio,
             "ref_images": shot_imgs,
             "ref_videos": list(item.get("ref_videos") or ()),
-            "ref_audios": [str(x).strip() for x in (item.get("ref_audios") or ()) if str(x).strip()],
-            "inherit_global_refs": bool(item.get("inherit_global_refs", True)),
+            "ref_audios": shot_auds,
+            "inherit_global_refs": inherit_refs,
+            "inherit_global_audios": inherit_auds,
             "seed_text": str(item.get("seed_text") or "").strip(),
             "speech_spans": _extract_speech_spans(local_prompt, fps),
             "local_prompt": local_prompt,
@@ -521,6 +549,8 @@ def parse_director_plan_json(
         }
         if shot_slots is not None:
             sh_dict["ref_slots"] = shot_slots
+        if shot_aud_slots is not None:
+            sh_dict["ref_audio_slots"] = shot_aud_slots
         shots.append(sh_dict)
     return global_cfg, shots
 

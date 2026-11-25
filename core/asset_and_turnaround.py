@@ -437,26 +437,63 @@ def load_shot_multimodal_refs(
 
     audios_out: list[dict[str, Any]] = []
     aud_names: list[str] = []
+    slot_audios: list[Optional[dict[str, Any]]] = [None, None, None]
+    audio_slot_to_ordinal: dict[int, int] = {}
     if not skip_ref_audios:
-        aud_paths: list[str] = []
+        inherit_aud = bool(shot["inherit_global_audios"]) if "inherit_global_audios" in shot else inherit
+        aud_slot_paths: list[str] = ["", "", ""]
         seen_aud: set[str] = set()
-        raw_aud_list = (list(gcfg.get("global_ref_audios") or ()) if inherit else []) + list(shot.get("ref_audios") or ())
-        for raw_ap in raw_aud_list:
-            rp = resolve_media_file(str(raw_ap), input_dir, project_root)
-            if rp and rp not in seen_aud:
-                seen_aud.add(rp)
-                aud_paths.append(rp)
+        has_aud_slots = ("ref_audio_slots" in shot) or ("global_ref_audio_slots" in gcfg)
+        if has_aud_slots:
+            own_as = [str(x or "").strip() for x in (shot.get("ref_audio_slots") or ())][:3]
+            glob_as = [str(x or "").strip() for x in (gcfg.get("global_ref_audio_slots") or gcfg.get("global_ref_audios") or ())][:3]
+            for k in range(3):
+                own_k = own_as[k] if k < len(own_as) else ""
+                glob_k = glob_as[k] if (inherit_aud and k < len(glob_as)) else ""
+                raw_cand = own_k or glob_k
+                if raw_cand:
+                    rp = resolve_media_file(raw_cand, input_dir, project_root)
+                    if rp and rp not in seen_aud:
+                        aud_slot_paths[k] = rp
+                        seen_aud.add(rp)
+            if not any(own_as):
+                for raw_ap in (shot.get("ref_audios") or ()):
+                    rp = resolve_media_file(str(raw_ap or "").strip(), input_dir, project_root)
+                    if rp and rp not in seen_aud:
+                        for k in range(3):
+                            if not aud_slot_paths[k]:
+                                aud_slot_paths[k] = rp
+                                seen_aud.add(rp)
+                                break
+        else:
+            raw_aud_list = (list(gcfg.get("global_ref_audios") or ()) if inherit_aud else []) + list(shot.get("ref_audios") or ())
+            for raw_ap in raw_aud_list:
+                rp = resolve_media_file(str(raw_ap), input_dir, project_root)
+                if rp and rp not in seen_aud:
+                    for k in range(3):
+                        if not aud_slot_paths[k]:
+                            aud_slot_paths[k] = rp
+                            seen_aud.add(rp)
+                            break
+
         for item in (bound.get("voice_assets") or ()):
             rp = str(item.get("path") or "")
             if rp and os.path.isfile(rp) and rp not in seen_aud:
-                seen_aud.add(rp)
-                aud_paths.append(rp)
+                for k in range(3):
+                    if not aud_slot_paths[k]:
+                        aud_slot_paths[k] = rp
+                        seen_aud.add(rp)
+                        break
 
-        for rp in aud_paths[:3]:
+        for k, rp in enumerate(aud_slot_paths):
+            if not rp:
+                continue
             ad = _load_audio_dict(rp)
             if ad is not None:
+                slot_audios[k] = ad
                 audios_out.append(ad)
                 aud_names.append(os.path.basename(rp))
+                audio_slot_to_ordinal[k + 1] = len(audios_out)
 
     tags: list[str] = [f"<Picture {i+1}>={nm}" for i, nm in enumerate(img_names)]
     aud_ord = 0
@@ -475,6 +512,8 @@ def load_shot_multimodal_refs(
         "slot_to_ordinal": slot_to_ordinal,
         "videos": videos_out,
         "audios": audios_out,
+        "slot_audios": slot_audios,
+        "audio_slot_to_ordinal": audio_slot_to_ordinal,
         "summary": ", ".join(tags),
     }
 

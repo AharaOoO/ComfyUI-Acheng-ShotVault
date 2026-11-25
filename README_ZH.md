@@ -9,7 +9,7 @@
 </p>
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
-[![Release](https://img.shields.io/badge/Release-v5.8.3-emerald.svg)](https://github.com/AharaOoO/ComfyUI-Acheng-ShotVault/releases)
+[![Release](https://img.shields.io/badge/Release-v5.8.4-emerald.svg)](https://github.com/AharaOoO/ComfyUI-Acheng-ShotVault/releases)
 [![ComfyUI](https://img.shields.io/badge/ComfyUI-Custom%20Nodes-orange.svg)](https://github.com/comfyanonymous/ComfyUI)
 [![Python](https://img.shields.io/badge/Python-%E2%89%A53.10-3776AB.svg)](https://www.python.org/)
 
@@ -48,7 +48,7 @@ flowchart LR
 
 | 模块 | 核心解决的痛点 | v5.8 实现方案 |
 | :--- | :--- | :--- |
-| **可视化分镜规划台** | 传统多段脚本难管理、文武戏无法混排、改一行全盘重跑 | 节点内嵌完整控制台：支持 `&时长&` + `===` 自动分段、`@cut@` / `@continue@` 显式切镜、每镜独立文武戏路由与 9 图参考槽、自由安全缩放（`紧凑/标准/宽屏`）、全屏专注提示词编辑器（`Ctrl+Enter` 保存）与中英双语实时切换 |
+| **可视化分镜规划台** | 传统多段脚本难管理、文武戏无法混排、改一行全盘重跑 | 节点内嵌完整控制台：支持 `&时长&` + `===` 自动分段、`@cut@` / `@continue@` 显式切镜、每镜独立文武戏路由、9 图参考槽与 3 槽音色参考 (`<Audio 1..3>`，支持在线试听、一键沿用到后续段与一键设为全镜通用音色)、自由安全缩放（`紧凑/标准/宽屏`）、全屏专注提示词编辑器（`Ctrl+Enter` 保存）与中英双语实时切换 |
 | **双向桥接单段重抽** | 改中间一镜导致与后一段脱节、下游整条链路标红作废 | 支持 **尾接下一段纯净首部（关 / 1帧 / 5帧 / 22帧）**：直接从下一段已裁头成品 MP4 提取无彩噪首帧，严格对齐 H3 `17k+5` 潜空间网格与 `cycle_pos == 0` 相位；`22f` 可选反向渐进微噪（接缝 `pos=0` 零噪），完成后下游血缘自动恢复绿标 `VALID` |
 | **成片导出同步闭环** | 重启 ComfyUI 或单段重抽后，旧 `master.mp4` 未更新导致误下旧片 | 每次导出原子写入伴生 `.manifest.json` 校验清单；支持重抽后**自动重合成片**；顶栏实时检测过期镜头并高亮 `导出成片 · 待更新`，导出弹窗自动拦截误下旧版 MP4 |
 | **固定机位防劣化策略** | 数字人 / 固定机位多轮 `@continue@` 叠加彩噪引发画质脏糊、背景包浆 | 内置三档防劣化策略（标准 / 温和防劣化 / 强保静态背景）+ 周期插 `@cut@` 清零工具，压制静态背景世代衰减 |

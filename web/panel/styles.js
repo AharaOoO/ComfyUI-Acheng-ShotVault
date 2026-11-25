@@ -112,6 +112,16 @@ export function injectStyles() {
 .sv-focus-ta{flex:1;min-height:0;width:100%;background:#0f1015;color:#eef1f8;border:1px solid #2e3445;border-radius:8px;padding:12px 14px;font:13.5px/1.65 "Consolas","JetBrains Mono","Microsoft YaHei",monospace;outline:none;resize:none;user-select:text}
 .sv-focus-ta:focus{border-color:#3a76ff}
 .sv-size-bar{display:inline-flex;align-items:center;gap:3px}
+.sv-aud-box{background:#151720;border:1px solid #2b3040;border-radius:7px;padding:7px;display:flex;flex-direction:column;gap:5px}
+.sv-aud-grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.sv-aud-slot{background:#11131a;border:1px dashed #363c4f;border-radius:6px;padding:5px 7px;display:flex;flex-direction:column;gap:4px;min-width:0;transition:border-color .15s}
+.sv-aud-slot.own{border-style:solid;border-color:#268a5c;background:#111d18}
+.sv-aud-slot.inh{border-style:dashed;border-color:#3a64b8;background:#12192a}
+.sv-aud-slot.muted{opacity:.48;pointer-events:none}
+.sv-aud-top{display:flex;align-items:center;justify-content:space-between;gap:4px;font-size:10px;color:#9da5ba}
+.sv-aud-name{font-size:11px;color:#dce3f5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;min-height:17px;line-height:17px}
+.sv-aud-name.empty{color:#6f7891}
+.sv-aud-warn{font-size:10.5px;color:#ffd08a;background:#362511;border:1px solid #8a5b1e;border-radius:5px;padding:3px 7px}
 `;
   document.head.appendChild(st);
 }

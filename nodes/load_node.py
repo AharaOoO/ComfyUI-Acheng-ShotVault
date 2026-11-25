@@ -125,8 +125,16 @@ class ShotVaultLoad:
         elif not parent_tid and store is not None and curr_idx == 1:
             parent_tid = store.get_active_take_id(0)
         audio_sig = str(((shot_pipe or {}).get("per_shot_audio") or {}).get(curr_idx, {}).get("sha256", ""))
+        gcfg = (shot_pipe or {}).get("global_refs_cfg") or {}
         key = "|".join([
             project_root, str(curr_idx), str(shot.get("prompt_sha256", "")),
+            str(shot.get("ref_slots", shot.get("ref_images", []))),
+            str(shot.get("ref_audio_slots", shot.get("ref_audios", []))),
+            str(shot.get("ref_videos", [])),
+            str(shot.get("inherit_global_refs", True)),
+            str(shot.get("inherit_global_audios", shot.get("inherit_global_refs", True))),
+            str(gcfg.get("global_ref_slots", gcfg.get("global_ref_images", []))),
+            str(gcfg.get("global_ref_audio_slots", gcfg.get("global_ref_audios", []))),
             str(shot_seed), str(seed_text), seed_mode, continue_from,
             f"{av_sync_lead_sec:.3f}", parent_tid, audio_sig, str(retry_lock),
             str((shot_pipe or {}).get("audio_drive_active", False)),
@@ -361,6 +369,7 @@ class ShotVaultLoad:
             "slot_to_ordinal": mm_refs.get("slot_to_ordinal") or {},
             "loaded_ref_videos": loaded_videos,
             "loaded_ref_audios": loaded_voices,
+            "audio_slot_to_ordinal": mm_refs.get("audio_slot_to_ordinal") or {},
             "active_ref_summary": mm_refs["summary"],
             "loaded_asset_images": loaded_imgs,
             "loaded_asset_voices": loaded_voices,
